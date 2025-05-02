@@ -48,9 +48,9 @@ public class Intro {
         });
 
         fadeOut.setOnFinished(e -> {
-            MainMenu mainMenu = new MainMenu();
-            mainMenu.show(stage);
+            new AuthWindow().show(stage);
         });
+
 
         stage.setScene(scene);
         stage.show();
