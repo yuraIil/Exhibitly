@@ -1,6 +1,5 @@
 package com.yuralil.application.windows;
 
-import com.yuralil.application.form.MainMenu;
 import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
 import javafx.animation.ScaleTransition;
@@ -19,9 +18,9 @@ public class Intro {
 
         StackPane root = new StackPane(title);
         root.setStyle("-fx-background-color: #d3ccc5;");
-        Scene scene = new Scene(root, 720, 540);
+        Scene scene = new Scene(root, 750, 600);
 
-        // Анімація появи (збільшення + прозорість)
+        // Плавне входження
         FadeTransition fadeIn = new FadeTransition(Duration.seconds(2), title);
         fadeIn.setFromValue(0);
         fadeIn.setToValue(1);
@@ -32,25 +31,37 @@ public class Intro {
         scaleIn.setToX(1);
         scaleIn.setToY(1);
 
-        // Поєднуємо анімації
         ParallelTransition parallelIn = new ParallelTransition(fadeIn, scaleIn);
 
-        // Анімація зникнення
-        FadeTransition fadeOut = new FadeTransition(Duration.seconds(2), title);
+        FadeTransition fadeOut = new FadeTransition(Duration.seconds(1.5), title);
         fadeOut.setFromValue(1);
         fadeOut.setToValue(0);
 
-        // Комбінуємо: з'явлення → пауза → зникнення → головне меню
         parallelIn.setOnFinished(e -> {
-            PauseTransition pause = new PauseTransition(Duration.seconds(1));
+            PauseTransition pause = new PauseTransition(Duration.seconds(0.5));
             pause.setOnFinished(ev -> fadeOut.play());
             pause.play();
         });
 
         fadeOut.setOnFinished(e -> {
-            new AuthWindow().show(stage);
-        });
+            // Зберігаємо стан
+            boolean maximized = stage.isMaximized();
+            double width = stage.getWidth();
+            double height = stage.getHeight();
+            double x = stage.getX();
+            double y = stage.getY();
 
+            // Не ховаємо stage — просто змінюємо root
+            AuthWindow authWindow = new AuthWindow();
+            StackPane authRoot = authWindow.getRoot();
+
+            Scene newScene = new Scene(authRoot, width, height);
+            stage.setScene(newScene);
+
+            stage.setMaximized(maximized);
+            stage.setX(x);
+            stage.setY(y);
+        });
 
         stage.setScene(scene);
         stage.show();
