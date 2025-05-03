@@ -1,6 +1,7 @@
 package com.yuralil.application.windows;
 
 import com.yuralil.application.form.AuthForm;
+import com.yuralil.application.form.MainMenu;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -25,6 +26,15 @@ public class AuthWindow {
         """);
 
         AuthForm authForm = new AuthForm();
+
+        // Додаємо дію на кнопку входу
+        authForm.getActionButton().setOnAction(e -> {
+            if (authForm.getCurrentMode() == AuthForm.Mode.LOGIN) {
+                Stage stage = (Stage) authForm.getScene().getWindow();
+                MainMenu mainMenu = new MainMenu();
+                mainMenu.show(stage);
+            }
+        });
 
         Button loginTab = new Button("Login");
         Button registerTab = new Button("Register");
@@ -65,13 +75,10 @@ public class AuthWindow {
         StackPane root = new StackPane();
         root.setAlignment(Pos.CENTER);
         root.setStyle("-fx-background-color: linear-gradient(to bottom, #fdfdfd, #f4f2ee);");
-        root.setPrefSize(720, 540);
+        root.setPrefSize(1920, 1080);
 
-        Pane bg = createBackgroundCircles();
+        Pane bg = createBackgroundCircles(1920, 1080);
         root.getChildren().addAll(bg, container);
-
-        root.widthProperty().addListener((obs, oldVal, newVal) -> bg.setPrefWidth(newVal.doubleValue()));
-        root.heightProperty().addListener((obs, oldVal, newVal) -> bg.setPrefHeight(newVal.doubleValue()));
 
         return root;
     }
@@ -81,28 +88,32 @@ public class AuthWindow {
         stage.setScene(scene);
     }
 
-    private Pane createBackgroundCircles() {
+    private Pane createBackgroundCircles(double width, double height) {
         Pane pane = new Pane();
-        List<Circle> circles = new ArrayList<>();
-        circles.add(createBlurredCircle(240, Color.web("#ec4899"), -500, -300, 0.4));
-        circles.add(createBlurredCircle(220, Color.web("#3b82f6"), 300, -350, 0.4));
-        circles.add(createBlurredCircle(150, Color.web("red"), 200, 200, 0.4));
-        circles.add(createBlurredCircle(200, Color.web("#10b981"), 500, -200, 0.4));
-        circles.add(createBlurredCircle(240, Color.web("#facc15"), -350, 500, 0.4));
-        circles.add(createBlurredCircle(220, Color.web("#8b5cf6"), 0, 600, 0.4));
-        circles.add(createBlurredCircle(200, Color.web("#0ea5e9"), 800, 200, 0.4));
-        circles.add(createBlurredCircle(280, Color.web("#f43f5e"), -450, 200, 0.4));
-        circles.add(createBlurredCircle(220, Color.web("#6366f1"), 900, 500, 0.4));
+        pane.setPrefSize(width, height);
+
+        List<Circle> circles = new ArrayList<>(List.of(
+                createBlurredCircle(260, Color.web("#f87171"), width * 0.15, height * 0.2, 0.3),
+                createBlurredCircle(240, Color.web("#60a5fa"), width * 0.4, height * 0.15, 0.3),
+                createBlurredCircle(220, Color.web("#34d399"), width * 0.2, height * 0.7, 0.3),
+                createBlurredCircle(240, Color.web("#facc15"), width * 0.5, height * 0.75, 0.3),
+                createBlurredCircle(220, Color.web("#a78bfa"), width * 0.65, height * 0.35, 0.3),
+                createBlurredCircle(200, Color.web("#fb7185"), width * 0.75, height * 0.2, 0.3),
+                createBlurredCircle(250, Color.web("#4ade80"), width * 0.8, height * 0.7, 0.3),
+                createBlurredCircle(210, Color.web("#fcd34d"), width * 0.45, height * 0.85, 0.3),
+                createBlurredCircle(180, Color.web("#38bdf8"), width * 0.7, height * 0.85, 0.3)
+        ));
+
         pane.getChildren().addAll(circles);
         return pane;
     }
 
-    private Circle createBlurredCircle(double radius, Color color, double x, double y, double opacity) {
+    private Circle createBlurredCircle(double radius, Color color, double layoutX, double layoutY, double opacity) {
         Circle circle = new Circle(radius, color);
         circle.setOpacity(opacity);
+        circle.setLayoutX(layoutX);
+        circle.setLayoutY(layoutY);
         circle.setEffect(new BoxBlur(40, 40, 2));
-        circle.setTranslateX(x);
-        circle.setTranslateY(y);
         return circle;
     }
 
@@ -110,16 +121,16 @@ public class AuthWindow {
         button.setStyle(
                 active
                         ? """
-                            -fx-background-color: #e6efe9;
-                            -fx-border-color: #2a5e3f;
-                            -fx-border-width: 0 0 2 0;
-                            -fx-font-weight: bold;
-                        """
+                    -fx-background-color: #e6efe9;
+                    -fx-border-color: #2a5e3f;
+                    -fx-border-width: 0 0 2 0;
+                    -fx-font-weight: bold;
+                """
                         : """
-                            -fx-background-color: transparent;
-                            -fx-border-color: transparent;
-                            -fx-text-fill: #999;
-                        """
+                    -fx-background-color: transparent;
+                    -fx-border-color: transparent;
+                    -fx-text-fill: #999;
+                """
         );
         button.setFocusTraversable(false);
     }
