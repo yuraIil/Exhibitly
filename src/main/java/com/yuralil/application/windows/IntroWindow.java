@@ -18,7 +18,7 @@ import javafx.util.Duration;
 
 import java.util.List;
 
-public class Intro {
+public class IntroWindow {
 
     public void showIntro(Stage stage) {
         Font lalezar = Font.loadFont(
@@ -60,7 +60,7 @@ public class Intro {
             if (keyEvent.getCode() == KeyCode.F11) {
                 if (stage.isFullScreen()) {
                     stage.setFullScreen(false);
-                    stage.setWidth(750);
+                    stage.setWidth(800);
                     stage.setHeight(600);
                     stage.centerOnScreen(); // Центруємо після зміни розміру
                 } else {

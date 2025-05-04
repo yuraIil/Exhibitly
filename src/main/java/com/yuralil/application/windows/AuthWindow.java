@@ -1,7 +1,6 @@
 package com.yuralil.application.windows;
 
 import com.yuralil.application.form.AuthForm;
-import com.yuralil.application.form.MainMenu;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -27,12 +26,12 @@ public class AuthWindow {
 
         AuthForm authForm = new AuthForm();
 
-        // Додаємо дію на кнопку входу
         authForm.getActionButton().setOnAction(e -> {
             if (authForm.getCurrentMode() == AuthForm.Mode.LOGIN) {
                 Stage stage = (Stage) authForm.getScene().getWindow();
-                MainMenu mainMenu = new MainMenu();
-                mainMenu.show(stage);
+                boolean wasFullScreen = stage.isFullScreen();
+                MainMenuWindow mainMenuWindow = new MainMenuWindow();
+                mainMenuWindow.show(stage, wasFullScreen);
             }
         });
 
@@ -40,7 +39,6 @@ public class AuthWindow {
         Button registerTab = new Button("Register");
         loginTab.setPrefWidth(120);
         registerTab.setPrefWidth(120);
-
         styleTabButton(loginTab, true);
         styleTabButton(registerTab, false);
 
