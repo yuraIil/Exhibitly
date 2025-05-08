@@ -21,12 +21,16 @@ public class MainMenuWindow {
     private final String activeStyle = baseStyle + "-fx-background-color: #e2e8f0; -fx-background-radius: 10; -fx-padding: 6 12;";
     private Label activeItem = null;
     private VBox rightPanel;
+    private String userRole = "user";
+
+    public void setUserRole(String role) {
+        this.userRole = role;
+    }
 
     public void show(Stage stage, boolean fullScreen) {
         double width = stage.getWidth();
         double height = stage.getHeight();
 
-        // Logo
         Label logo = new Label("Exhibitly");
         logo.setStyle("""
         -fx-font-size: 28px;
@@ -34,9 +38,11 @@ public class MainMenuWindow {
         -fx-text-fill: #1a3e2b;
     """);
 
-        // Sidebar menu
         Map<String, Label> menuItems = new LinkedHashMap<>();
-        menuItems.put("Exhibit Manager", new Label("\uD83C\uDFDB Exhibit Manager"));
+
+        if (!"visitor".equals(userRole)) {
+            menuItems.put("Exhibit Manager", new Label("\uD83C\uDFDB Exhibit Manager"));
+        }
         menuItems.put("Collection Catalog", new Label("\uD83D\uDCDA Collection Catalog"));
         menuItems.put("Favorites", new Label("\u2764 Favorites"));
         menuItems.put("Settings", new Label("\u2699 Settings"));
@@ -55,28 +61,23 @@ public class MainMenuWindow {
         leftPanel.setMinWidth(220);
         leftPanel.setMaxWidth(280);
 
-        // Right content panel (initial)
-        rightPanel = new ExhibitManagerForm();
+        rightPanel = new VBox(new Label("Welcome to Exhibitly!"));
         styleRightPanel(rightPanel);
 
-        // Content
         HBox content = new HBox(leftPanel, rightPanel);
         content.setSpacing(30);
         content.setAlignment(Pos.CENTER_LEFT);
         content.setPadding(new Insets(30));
         HBox.setHgrow(rightPanel, Priority.ALWAYS);
 
-        // Wrapper with white background (limited size)
         VBox wrapper = new VBox(content);
         wrapper.setStyle("-fx-background-color: white; -fx-background-radius: 32;");
         wrapper.setPadding(new Insets(20));
         wrapper.maxWidthProperty().bind(stage.widthProperty().subtract(60));
-
         wrapper.setMaxHeight(640);
         wrapper.maxHeightProperty().bind(Bindings.min(stage.heightProperty().subtract(60), 700));
         wrapper.maxWidthProperty().bind(Bindings.min(stage.widthProperty().subtract(60), 1000));
 
-        // Root with animated background
         StackPane root = new StackPane();
         root.setAlignment(Pos.CENTER);
         root.setStyle("-fx-background-color: linear-gradient(to bottom, #fdfdfd, #f4f2ee);");
@@ -85,7 +86,6 @@ public class MainMenuWindow {
         Pane background = createBackgroundCircles(width, height);
         root.getChildren().addAll(background, wrapper);
 
-        // Scene setup
         Scene scene = new Scene(root, width, height);
         scene.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.F11) {
@@ -105,7 +105,9 @@ public class MainMenuWindow {
         stage.setScene(scene);
         stage.setFullScreen(fullScreen);
 
-        setActiveItem(menuItems.get("Exhibit Manager"));
+        if (!"visitor".equals(userRole)) {
+            setActiveItem(menuItems.get("Exhibit Manager"));
+        }
     }
 
     private void setActiveItem(Label selected) {
@@ -156,6 +158,4 @@ public class MainMenuWindow {
         circle.setEffect(new BoxBlur(40, 40, 2));
         return circle;
     }
-
-
 }

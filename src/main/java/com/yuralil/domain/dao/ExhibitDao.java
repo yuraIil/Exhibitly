@@ -3,10 +3,11 @@ package com.yuralil.domain.dao;
 import com.yuralil.domain.entities.Category;
 import com.yuralil.domain.entities.Exhibit;
 import com.yuralil.domain.entities.Multimedia;
-import com.yuralil.infrastructure.until.ConnectionManager;
+import com.yuralil.infrastructure.util.ConnectionHolder;
 
 import java.sql.*;
-import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class ExhibitDao {
@@ -22,6 +23,11 @@ public class ExhibitDao {
         SELECT id, name, category_id, description, acquisition_date, multimedia_id
         FROM exhibit
         WHERE id = ?
+        """;
+
+    private static final String SELECT_ALL_SQL = """
+        SELECT id, name, category_id, description, acquisition_date, multimedia_id
+        FROM exhibit
         """;
 
     private static final String DELETE_SQL = """
@@ -42,7 +48,7 @@ public class ExhibitDao {
     }
 
     public Exhibit insert(Exhibit exhibit) {
-        try (Connection conn = ConnectionManager.open();
+        try (Connection conn = ConnectionHolder.get();
              PreparedStatement ps = conn.prepareStatement(INSERT_SQL, Statement.RETURN_GENERATED_KEYS)) {
 
             ps.setString(1, exhibit.getName());
@@ -65,7 +71,7 @@ public class ExhibitDao {
     }
 
     public Optional<Exhibit> findById(int id) {
-        try (Connection conn = ConnectionManager.open();
+        try (Connection conn = ConnectionHolder.get();
              PreparedStatement ps = conn.prepareStatement(SELECT_BY_ID_SQL)) {
 
             ps.setInt(1, id);
@@ -82,8 +88,24 @@ public class ExhibitDao {
         }
     }
 
+    public List<Exhibit> findAll() {
+        List<Exhibit> exhibits = new ArrayList<>();
+        try (Connection conn = ConnectionHolder.get();
+             PreparedStatement ps = conn.prepareStatement(SELECT_ALL_SQL);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                exhibits.add(buildExhibit(rs));
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to load all exhibits", e);
+        }
+        return exhibits;
+    }
+
     public boolean update(Exhibit exhibit) {
-        try (Connection conn = ConnectionManager.open();
+        try (Connection conn = ConnectionHolder.get();
              PreparedStatement ps = conn.prepareStatement(UPDATE_SQL)) {
 
             ps.setString(1, exhibit.getName());
@@ -100,7 +122,7 @@ public class ExhibitDao {
     }
 
     public boolean delete(int id) {
-        try (Connection conn = ConnectionManager.open();
+        try (Connection conn = ConnectionHolder.get();
              PreparedStatement ps = conn.prepareStatement(DELETE_SQL)) {
 
             ps.setInt(1, id);
@@ -114,10 +136,10 @@ public class ExhibitDao {
         return new Exhibit(
                 rs.getInt("id"),
                 rs.getString("name"),
-                new Category(rs.getInt("category_id"), null, null), // Поки без повних даних
+                new Category(rs.getInt("category_id"), null, null),
                 rs.getString("description"),
                 rs.getDate("acquisition_date").toLocalDate(),
-                new Multimedia(rs.getInt("multimedia_id"), null, null, null) // Поки без повних даних
+                new Multimedia(rs.getInt("multimedia_id"), null, null, null)
         );
     }
 }

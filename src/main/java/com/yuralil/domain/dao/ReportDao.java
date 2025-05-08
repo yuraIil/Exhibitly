@@ -1,10 +1,9 @@
 package com.yuralil.domain.dao;
 
 import com.yuralil.domain.entities.Report;
-import com.yuralil.infrastructure.until.ConnectionManager;
+import com.yuralil.infrastructure.util.ConnectionHolder;
 
 import java.sql.*;
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 public class ReportDao {
@@ -40,7 +39,7 @@ public class ReportDao {
     }
 
     public Report insert(Report report) {
-        try (Connection conn = ConnectionManager.open();
+        try (Connection conn = ConnectionHolder.get();
              PreparedStatement ps = conn.prepareStatement(INSERT_SQL, Statement.RETURN_GENERATED_KEYS)) {
 
             ps.setString(1, report.getType());
@@ -61,7 +60,7 @@ public class ReportDao {
     }
 
     public Optional<Report> findById(int id) {
-        try (Connection conn = ConnectionManager.open();
+        try (Connection conn = ConnectionHolder.get();
              PreparedStatement ps = conn.prepareStatement(SELECT_BY_ID_SQL)) {
 
             ps.setInt(1, id);
@@ -84,7 +83,7 @@ public class ReportDao {
     }
 
     public boolean update(Report report) {
-        try (Connection conn = ConnectionManager.open();
+        try (Connection conn = ConnectionHolder.get();
              PreparedStatement ps = conn.prepareStatement(UPDATE_SQL)) {
 
             ps.setString(1, report.getType());
@@ -99,7 +98,7 @@ public class ReportDao {
     }
 
     public boolean delete(int id) {
-        try (Connection conn = ConnectionManager.open();
+        try (Connection conn = ConnectionHolder.get();
              PreparedStatement ps = conn.prepareStatement(DELETE_SQL)) {
 
             ps.setInt(1, id);

@@ -31,6 +31,7 @@ public class AuthWindow {
                 Stage stage = (Stage) authForm.getScene().getWindow();
                 boolean wasFullScreen = stage.isFullScreen();
                 MainMenuWindow mainMenuWindow = new MainMenuWindow();
+                mainMenuWindow.setUserRole("user");
                 mainMenuWindow.show(stage, wasFullScreen);
             }
         });
@@ -58,7 +59,23 @@ public class AuthWindow {
         tabButtons.setSpacing(2);
         tabButtons.setAlignment(Pos.CENTER);
 
-        VBox container = new VBox(22, title, tabButtons, authForm);
+        Button guestButton = new Button("Continue as Guest");
+        guestButton.setStyle("""
+            -fx-background-color: transparent;
+            -fx-text-fill: #1a3e2b;
+            -fx-underline: true;
+            -fx-font-size: 12px;
+            -fx-font-weight: bold;
+        """);
+        guestButton.setOnAction(e -> {
+            Stage stage = (Stage) guestButton.getScene().getWindow();
+            boolean wasFullScreen = stage.isFullScreen();
+            MainMenuWindow mainMenuWindow = new MainMenuWindow();
+            mainMenuWindow.setUserRole("visitor");
+            mainMenuWindow.show(stage, wasFullScreen);
+        });
+
+        VBox container = new VBox(22, title, tabButtons, authForm, guestButton);
         container.setAlignment(Pos.TOP_CENTER);
         container.setStyle("""
             -fx-background-color: white;
@@ -67,8 +84,8 @@ public class AuthWindow {
         """);
         container.setMaxWidth(360);
         container.setPrefWidth(340);
-        container.setMaxHeight(420);
-        container.setPrefHeight(420);
+        container.setMaxHeight(460);
+        container.setPrefHeight(460);
 
         StackPane root = new StackPane();
         root.setAlignment(Pos.CENTER);

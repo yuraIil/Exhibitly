@@ -2,7 +2,7 @@ package com.yuralil.domain.dao;
 
 import com.yuralil.domain.entities.Exhibit;
 import com.yuralil.domain.entities.Multimedia;
-import com.yuralil.infrastructure.until.ConnectionManager;
+import com.yuralil.infrastructure.util.ConnectionHolder;
 
 import java.sql.*;
 import java.util.Optional;
@@ -12,7 +12,7 @@ public class MultimediaDao {
     private static final MultimediaDao INSTANCE = new MultimediaDao();
 
     private static final String INSERT_SQL = """
-        INSERT INTO multimedia (exhibit_id, type, file_path)
+        INSERT INTO multimedia (type, file_path, exhibit_id)
         VALUES (?, ?, ?)
         """;
 
@@ -40,12 +40,17 @@ public class MultimediaDao {
     }
 
     public Multimedia insert(Multimedia multimedia) {
-        try (Connection conn = ConnectionManager.open();
+        try (Connection conn = ConnectionHolder.get();
              PreparedStatement ps = conn.prepareStatement(INSERT_SQL, Statement.RETURN_GENERATED_KEYS)) {
 
-            ps.setInt(1, multimedia.getExhibit().getId());
-            ps.setString(2, multimedia.getType());
-            ps.setString(3, multimedia.getFilePath());
+            ps.setString(1, multimedia.getType());
+            ps.setString(2, multimedia.getFilePath());
+
+            if (multimedia.getExhibit() != null) {
+                ps.setInt(3, multimedia.getExhibit().getId());
+            } else {
+                ps.setNull(3, Types.INTEGER);
+            }
 
             ps.executeUpdate();
 
@@ -61,16 +66,19 @@ public class MultimediaDao {
     }
 
     public Optional<Multimedia> findById(int id) {
-        try (Connection conn = ConnectionManager.open();
+        try (Connection conn = ConnectionHolder.get();
              PreparedStatement ps = conn.prepareStatement(SELECT_BY_ID_SQL)) {
 
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
+                Exhibit exhibit = new Exhibit();
+                exhibit.setId(rs.getInt("exhibit_id"));
+
                 Multimedia multimedia = new Multimedia(
                         rs.getInt("id"),
-                        new Exhibit(rs.getInt("exhibit_id"), null, null, null, null, null),
+                        exhibit,
                         rs.getString("type"),
                         rs.getString("file_path")
                 );
@@ -84,7 +92,7 @@ public class MultimediaDao {
     }
 
     public boolean update(Multimedia multimedia) {
-        try (Connection conn = ConnectionManager.open();
+        try (Connection conn = ConnectionHolder.get();
              PreparedStatement ps = conn.prepareStatement(UPDATE_SQL)) {
 
             ps.setInt(1, multimedia.getExhibit().getId());
@@ -99,7 +107,7 @@ public class MultimediaDao {
     }
 
     public boolean delete(int id) {
-        try (Connection conn = ConnectionManager.open();
+        try (Connection conn = ConnectionHolder.get();
              PreparedStatement ps = conn.prepareStatement(DELETE_SQL)) {
 
             ps.setInt(1, id);

@@ -1,7 +1,7 @@
 package com.yuralil.domain.dao;
 
 import com.yuralil.domain.entities.Users;
-import com.yuralil.infrastructure.until.ConnectionManager;
+import com.yuralil.infrastructure.util.ConnectionHolder;
 
 import java.sql.*;
 import java.util.Optional;
@@ -39,7 +39,7 @@ public class UsersDao {
     }
 
     public Users insert(Users user) {
-        try (Connection connection = ConnectionManager.open();
+        try (Connection connection = ConnectionHolder.get();
              PreparedStatement ps = connection.prepareStatement(INSERT_SQL, Statement.RETURN_GENERATED_KEYS)) {
 
             ps.setString(1, user.getUsername());
@@ -60,7 +60,7 @@ public class UsersDao {
     }
 
     public boolean update(Users user) {
-        try (Connection connection = ConnectionManager.open();
+        try (Connection connection = ConnectionHolder.get();
              PreparedStatement ps = connection.prepareStatement(UPDATE_SQL)) {
 
             ps.setString(1, user.getUsername());
@@ -75,7 +75,7 @@ public class UsersDao {
     }
 
     public boolean delete(int id) {
-        try (Connection connection = ConnectionManager.open();
+        try (Connection connection = ConnectionHolder.get();
              PreparedStatement ps = connection.prepareStatement(DELETE_SQL)) {
 
             ps.setInt(1, id);
@@ -86,7 +86,7 @@ public class UsersDao {
     }
 
     public Optional<Users> findById(int id) {
-        try (Connection connection = ConnectionManager.open();
+        try (Connection connection = ConnectionHolder.get();
              PreparedStatement ps = connection.prepareStatement(SELECT_BY_ID_SQL)) {
 
             ps.setInt(1, id);
