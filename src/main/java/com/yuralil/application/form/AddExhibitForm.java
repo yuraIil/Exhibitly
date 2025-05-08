@@ -8,7 +8,6 @@ import com.yuralil.domain.entities.Exhibit;
 import com.yuralil.domain.entities.Multimedia;
 import com.yuralil.infrastructure.util.ConnectionHolder;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -20,10 +19,7 @@ import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
 import java.sql.Connection;
 import java.time.LocalDate;
 
@@ -34,7 +30,6 @@ public class AddExhibitForm extends VBox {
     private final DatePicker acquisitionDate = new DatePicker();
     private final TextArea descriptionArea = new TextArea();
     private final Label photoPathLabel = new Label("No file selected");
-    private final Button selectPhotoButton = new Button("Choose Photo");
     private final ImageView previewImage = new ImageView();
     private File selectedPhotoFile;
 
@@ -54,6 +49,7 @@ public class AddExhibitForm extends VBox {
         previewImage.setPreserveRatio(true);
         previewImage.setSmooth(true);
 
+        Button selectPhotoButton = new Button("Choose Photo");
         selectPhotoButton.setOnAction(e -> {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Select Exhibit Image");
@@ -74,21 +70,24 @@ public class AddExhibitForm extends VBox {
                 Connection conn = new com.yuralil.infrastructure.util.ConnectionPool().getConnection();
                 ConnectionHolder.set(conn);
 
-                // 1. Copy image to target/classes/images
-                Path imagesPath = Path.of(getClass().getResource("/images").toURI());
-                Path destPath = imagesPath.resolve(selectedPhotoFile.getName());
+                // 1. Копіюємо файл у "images/" в корені проєкту
+                Path imagesDir = Path.of("images");
+                if (!Files.exists(imagesDir)) {
+                    Files.createDirectories(imagesDir);
+                }
+                Path destPath = imagesDir.resolve(selectedPhotoFile.getName());
                 Files.copy(selectedPhotoFile.toPath(), destPath, StandardCopyOption.REPLACE_EXISTING);
 
-                // 2. Save multimedia
+                // 2. Створюємо мультимедіа
                 Multimedia multimedia = new Multimedia();
                 multimedia.setType("image");
-                multimedia.setFilePath("/images/" + selectedPhotoFile.getName());
+                multimedia.setFilePath(selectedPhotoFile.getName());
                 multimedia = MultimediaDao.getInstance().insert(multimedia);
 
-                // 3. Save category
+                // 3. Категорія
                 Category category = CategoryDao.getInstance().findOrCreateByName(categoryField.getText());
 
-                // 4. Save exhibit
+                // 4. Експонат
                 Exhibit exhibit = new Exhibit();
                 exhibit.setName(nameField.getText());
                 exhibit.setCategory(category);
@@ -97,17 +96,9 @@ public class AddExhibitForm extends VBox {
                 exhibit.setMultimedia(multimedia);
                 ExhibitDao.getInstance().insert(exhibit);
 
-                // 5. Update UI
-                listView.addExhibit(
-                        exhibit.getName(),
-                        exhibit.getCategory().getName(),
-                        exhibit.getAcquisitionDate().toString(),
-                        exhibit.getDescription(),
-                        exhibit.getMultimedia().getFilePath()
-                );
-
+                listView.loadExhibitsFromDb(); // оновлення списку
                 ((Stage) getScene().getWindow()).close();
-            } catch (IOException | URISyntaxException ex) {
+            } catch (IOException ex) {
                 new Alert(Alert.AlertType.ERROR, "Failed to save image: " + ex.getMessage()).showAndWait();
             } finally {
                 ConnectionHolder.clear();

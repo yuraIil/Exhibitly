@@ -133,13 +133,21 @@ public class ExhibitDao {
     }
 
     private Exhibit buildExhibit(ResultSet rs) throws SQLException {
+        int multimediaId = rs.getInt("multimedia_id");
+        Multimedia multimedia = MultimediaDao.getInstance().findById(multimediaId)
+                .orElse(new Multimedia(multimediaId, null, null, null));
+
+        int categoryId = rs.getInt("category_id");
+        Category category = CategoryDao.getInstance().findById(categoryId)
+                .orElse(new Category(categoryId, null, null));
+
         return new Exhibit(
                 rs.getInt("id"),
                 rs.getString("name"),
-                new Category(rs.getInt("category_id"), null, null),
+                category,
                 rs.getString("description"),
                 rs.getDate("acquisition_date").toLocalDate(),
-                new Multimedia(rs.getInt("multimedia_id"), null, null, null)
+                multimedia
         );
     }
 }

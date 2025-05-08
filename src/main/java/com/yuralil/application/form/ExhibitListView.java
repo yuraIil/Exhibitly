@@ -1,24 +1,23 @@
 package com.yuralil.application.form;
 
 import com.yuralil.domain.dao.ExhibitDao;
-import com.yuralil.domain.dao.MultimediaDao;
 import com.yuralil.domain.entities.Exhibit;
-import com.yuralil.domain.entities.Multimedia;
 import com.yuralil.infrastructure.util.ConnectionHolder;
 import com.yuralil.infrastructure.util.ConnectionPool;
 import javafx.geometry.Insets;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 
 import java.io.File;
-import java.net.URL;
 import java.sql.Connection;
-import java.util.List;
+import java.util.*;
 
 public class ExhibitListView extends VBox {
+
+    private final Map<Exhibit, CheckBox> exhibitCheckboxMap = new LinkedHashMap<>();
 
     public ExhibitListView() {
         setSpacing(12);
@@ -27,7 +26,7 @@ public class ExhibitListView extends VBox {
         loadExhibitsFromDb();
     }
 
-    public void addExhibit(String name, String category, String date, String description, String photoPath) {
+    public void addExhibitCard(Exhibit exhibit) {
         VBox card = new VBox(6);
         card.setPadding(new Insets(12));
         card.setSpacing(4);
@@ -39,10 +38,13 @@ public class ExhibitListView extends VBox {
             -fx-border-color: #ccc;
         """);
 
-        Label nameLabel = new Label("Name: " + name);
-        Label categoryLabel = new Label("Category: " + category);
-        Label dateLabel = new Label("Date: " + date);
-        Label descLabel = new Label("Description: " + description);
+        CheckBox selectBox = new CheckBox();
+        exhibitCheckboxMap.put(exhibit, selectBox);
+
+        Label nameLabel = new Label("Name: " + exhibit.getName());
+        Label categoryLabel = new Label("Category: " + exhibit.getCategory().getName());
+        Label dateLabel = new Label("Date: " + exhibit.getAcquisitionDate());
+        Label descLabel = new Label("Description: " + exhibit.getDescription());
 
         for (Label label : new Label[]{nameLabel, categoryLabel, dateLabel, descLabel}) {
             label.setStyle("-fx-text-fill: #333; -fx-font-size: 13px;");
@@ -50,22 +52,24 @@ public class ExhibitListView extends VBox {
 
         ImageView imageView = new ImageView();
         try {
-            URL resource = getClass().getResource(photoPath);
-            if (resource != null) {
-                imageView.setImage(new Image(resource.toExternalForm()));
+            File file = new File("images/" + exhibit.getMultimedia().getFilePath());
+            if (file.exists()) {
+                imageView.setImage(new Image(file.toURI().toString()));
                 imageView.setFitWidth(100);
                 imageView.setPreserveRatio(true);
             }
         } catch (Exception e) {
-            System.err.println("⚠ Не вдалося завантажити фото: " + photoPath);
+            System.err.println("⚠ Failed to load image: " + exhibit.getMultimedia().getFilePath());
         }
 
-        card.getChildren().addAll(nameLabel, categoryLabel, dateLabel, descLabel, imageView);
+        HBox topRow = new HBox(10, selectBox, nameLabel);
+        card.getChildren().addAll(topRow, categoryLabel, dateLabel, descLabel, imageView);
         getChildren().add(card);
     }
 
     public void loadExhibitsFromDb() {
         getChildren().clear();
+        exhibitCheckboxMap.clear();
 
         Label title = new Label("Exhibits");
         title.setFont(Font.font("Arial", 20));
@@ -76,23 +80,8 @@ public class ExhibitListView extends VBox {
             Connection conn = new ConnectionPool().getConnection();
             ConnectionHolder.set(conn);
 
-            List<Exhibit> exhibits = ExhibitDao.getInstance().findAll();
-            for (Exhibit exhibit : exhibits) {
-                // Підтягування мультимедіа, якщо null
-                if (exhibit.getMultimedia() != null && exhibit.getMultimedia().getFilePath() == null) {
-                    Multimedia mm = MultimediaDao.getInstance().findById(exhibit.getMultimedia().getId()).orElse(null);
-                    exhibit.setMultimedia(mm);
-                }
-
-                String path = (exhibit.getMultimedia() != null) ? exhibit.getMultimedia().getFilePath() : "";
-
-                addExhibit(
-                        exhibit.getName(),
-                        exhibit.getCategory().getName(),
-                        exhibit.getAcquisitionDate().toString(),
-                        exhibit.getDescription(),
-                        path
-                );
+            for (Exhibit exhibit : ExhibitDao.getInstance().findAll()) {
+                addExhibitCard(exhibit);
             }
         } catch (Exception e) {
             Label error = new Label("❌ Failed to load exhibits: " + e.getMessage());
@@ -101,5 +90,15 @@ public class ExhibitListView extends VBox {
         } finally {
             ConnectionHolder.clear();
         }
+    }
+
+    public List<Exhibit> getSelectedExhibits() {
+        List<Exhibit> selected = new ArrayList<>();
+        for (Map.Entry<Exhibit, CheckBox> entry : exhibitCheckboxMap.entrySet()) {
+            if (entry.getValue().isSelected()) {
+                selected.add(entry.getKey());
+            }
+        }
+        return selected;
     }
 }
