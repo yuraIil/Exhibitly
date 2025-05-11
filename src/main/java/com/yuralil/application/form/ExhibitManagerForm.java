@@ -2,6 +2,7 @@ package com.yuralil.application.form;
 
 import com.yuralil.components.ConfirmDialog;
 import com.yuralil.domain.dao.ExhibitDao;
+import com.yuralil.domain.entities.Exhibit;
 import com.yuralil.infrastructure.util.ConnectionHolder;
 import com.yuralil.infrastructure.util.ConnectionPool;
 import javafx.geometry.Insets;
@@ -11,6 +12,7 @@ import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
 import java.sql.Connection;
+import java.util.List;
 
 public class ExhibitManagerForm extends VBox {
 
@@ -44,11 +46,13 @@ public class ExhibitManagerForm extends VBox {
             -fx-padding: 6 14;
         """);
 
+        exhibitListView = new ExhibitListView();
+
+        searchBtn.setOnAction(e -> exhibitListView.searchExhibits(searchField.getText().trim()));
+
         HBox searchBox = new HBox(10, searchField, searchBtn);
         searchBox.setAlignment(Pos.CENTER_LEFT);
         searchBox.setPadding(new Insets(0, 0, 10, 0));
-
-        exhibitListView = new ExhibitListView();
 
         ScrollPane scrollPane = new ScrollPane(exhibitListView);
         scrollPane.setFitToWidth(true);
@@ -63,12 +67,21 @@ public class ExhibitManagerForm extends VBox {
         Button addBtn = new Button("Add");
         addBtn.setOnAction(e -> AddExhibitForm.showForm((Stage) getScene().getWindow(), exhibitListView));
 
+        Button editBtn = new Button("Edit");
+        editBtn.setOnAction(e -> {
+            List<Exhibit> selected = exhibitListView.getSelectedExhibits();
+            if (selected.size() != 1) {
+                ConfirmDialog.showWarning("Please select exactly one exhibit to edit.", getScene().getWindow());
+                return;
+            }
+            EditExhibitForm.showForm((Stage) getScene().getWindow(), selected.get(0), exhibitListView);
+        });
+
         Button deleteBtn = new Button("Delete");
         deleteBtn.setOnAction(e -> {
-            var selected = exhibitListView.getSelectedExhibits();
+            List<Exhibit> selected = exhibitListView.getSelectedExhibits();
             if (selected.isEmpty()) {
                 ConfirmDialog.showWarning("Please select exhibits to delete.", getScene().getWindow());
-
                 return;
             }
 
@@ -78,7 +91,7 @@ public class ExhibitManagerForm extends VBox {
                         try {
                             Connection conn = new ConnectionPool().getConnection();
                             ConnectionHolder.set(conn);
-                            for (var exhibit : selected) {
+                            for (Exhibit exhibit : selected) {
                                 ExhibitDao.getInstance().delete(exhibit.getId());
                             }
                             exhibitListView.loadExhibitsFromDb();
@@ -88,12 +101,11 @@ public class ExhibitManagerForm extends VBox {
                             ConnectionHolder.clear();
                         }
                     },
-                    getScene().getWindow() // ✅ передаємо головне вікно
+                    getScene().getWindow()
             );
-
         });
 
-        for (Button btn : new Button[]{addBtn, deleteBtn}) {
+        for (Button btn : new Button[]{addBtn, editBtn, deleteBtn}) {
             btn.setStyle("""
                 -fx-background-color: #e6efe9;
                 -fx-text-fill: #1a3e2b;
@@ -103,7 +115,7 @@ public class ExhibitManagerForm extends VBox {
             """);
         }
 
-        HBox buttonBox = new HBox(10, addBtn, deleteBtn);
+        HBox buttonBox = new HBox(10, addBtn, editBtn, deleteBtn);
         buttonBox.setAlignment(Pos.CENTER_LEFT);
         buttonBox.setPadding(new Insets(10, 0, 0, 0));
 

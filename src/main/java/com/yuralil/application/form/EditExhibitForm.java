@@ -25,9 +25,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.sql.Connection;
-import java.time.LocalDate;
 
-public class AddExhibitForm extends VBox {
+public class EditExhibitForm extends VBox {
 
     private final TextField nameField = new TextField();
     private final ComboBox<Category> categoryComboBox = new ComboBox<>();
@@ -37,7 +36,7 @@ public class AddExhibitForm extends VBox {
     private final ImageView previewImage = new ImageView();
     private File selectedPhotoFile;
 
-    public AddExhibitForm(Stage ownerStage, Stage dialog, ExhibitListView listView) {
+    public EditExhibitForm(Stage ownerStage, Stage dialog, Exhibit exhibit, ExhibitListView listView) {
         setSpacing(10);
         setPadding(new Insets(20));
         setStyle("""
@@ -48,7 +47,7 @@ public class AddExhibitForm extends VBox {
             -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 10, 0, 0, 6);
         """);
 
-        Label title = new Label("Add New Exhibit");
+        Label title = new Label("Edit Exhibit");
         title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
 
         Button closeBtn = new Button("✖");
@@ -64,8 +63,8 @@ public class AddExhibitForm extends VBox {
         titleBar.setAlignment(Pos.CENTER_LEFT);
 
         nameField.setPromptText("Exhibit Name");
+        nameField.setText(exhibit.getName());
 
-        categoryComboBox.setPromptText("Select Category");
         try (Connection conn = new com.yuralil.infrastructure.util.ConnectionPool().getConnection()) {
             ConnectionHolder.set(conn);
             categoryComboBox.getItems().addAll(CategoryDao.getInstance().findAll());
@@ -75,9 +74,13 @@ public class AddExhibitForm extends VBox {
             ConnectionHolder.clear();
         }
         categoryComboBox.setMaxWidth(Double.MAX_VALUE);
+        categoryComboBox.setValue(exhibit.getCategory());
 
         acquisitionDate.setPromptText("Acquisition Date");
+        acquisitionDate.setValue(exhibit.getAcquisitionDate());
+
         descriptionArea.setPromptText("Description");
+        descriptionArea.setText(exhibit.getDescription());
         descriptionArea.setPrefRowCount(4);
 
         previewImage.setFitWidth(160);
@@ -85,7 +88,15 @@ public class AddExhibitForm extends VBox {
         previewImage.setPreserveRatio(true);
         previewImage.setSmooth(true);
 
-        Button selectPhotoButton = new Button("\uD83D\uDCF7 Choose Photo");
+        if (exhibit.getMultimedia() != null && exhibit.getMultimedia().getFilePath() != null) {
+            File imageFile = Path.of("storage/images", exhibit.getMultimedia().getFilePath()).toFile();
+            if (imageFile.exists()) {
+                previewImage.setImage(new Image(imageFile.toURI().toString()));
+                photoPathLabel.setText(imageFile.getName());
+            }
+        }
+
+        Button selectPhotoButton = new Button("\uD83D\uDCF7 Choose New Photo");
         selectPhotoButton.setOnAction(e -> {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Select Exhibit Image");
@@ -108,15 +119,13 @@ public class AddExhibitForm extends VBox {
             -fx-padding: 6 16;
             -fx-background-radius: 6;
         """);
-
         saveButton.setOnAction(e -> {
             if (nameField.getText().isBlank() ||
                     categoryComboBox.getValue() == null ||
                     acquisitionDate.getValue() == null ||
-                    descriptionArea.getText().isBlank() ||
-                    selectedPhotoFile == null) {
+                    descriptionArea.getText().isBlank()) {
 
-                com.yuralil.components.ConfirmDialog.showWarning("Please fill in all fields and select a photo.", getScene().getWindow());
+                com.yuralil.components.ConfirmDialog.showWarning("Please fill in all required fields.", getScene().getWindow());
                 return;
             }
 
@@ -124,31 +133,32 @@ public class AddExhibitForm extends VBox {
                 Connection conn = new com.yuralil.infrastructure.util.ConnectionPool().getConnection();
                 ConnectionHolder.set(conn);
 
-                Path imagesDir = Path.of("storage/images");
-                if (!Files.exists(imagesDir)) Files.createDirectories(imagesDir);
-                Path destPath = imagesDir.resolve(selectedPhotoFile.getName());
-                Files.copy(selectedPhotoFile.toPath(), destPath, StandardCopyOption.REPLACE_EXISTING);
+                if (selectedPhotoFile != null) {
+                    Path imagesDir = Path.of("storage/images");
+                    if (!Files.exists(imagesDir)) Files.createDirectories(imagesDir);
+                    Path destPath = imagesDir.resolve(selectedPhotoFile.getName());
+                    Files.copy(selectedPhotoFile.toPath(), destPath, StandardCopyOption.REPLACE_EXISTING);
 
-                Multimedia multimedia = new Multimedia();
-                multimedia.setType("image");
-                multimedia.setFilePath(selectedPhotoFile.getName()); // тільки назва файлу
-                multimedia = MultimediaDao.getInstance().insert(multimedia);
+                    Multimedia newMedia = new Multimedia();
+                    newMedia.setType("image");
+                    newMedia.setFilePath(selectedPhotoFile.getName());
+                    MultimediaDao.getInstance().update(newMedia);
+                    exhibit.setMultimedia(newMedia);
+                }
 
-
-                Category category = categoryComboBox.getValue();
-
-                Exhibit exhibit = new Exhibit();
                 exhibit.setName(nameField.getText());
-                exhibit.setCategory(category);
+                exhibit.setCategory(categoryComboBox.getValue());
                 exhibit.setDescription(descriptionArea.getText());
                 exhibit.setAcquisitionDate(acquisitionDate.getValue());
-                exhibit.setMultimedia(multimedia);
 
-                ExhibitDao.getInstance().insert(exhibit);
+                ExhibitDao.getInstance().update(exhibit);
                 listView.loadExhibitsFromDb();
+
                 dialog.close();
             } catch (IOException ex) {
                 new Alert(Alert.AlertType.ERROR, "Failed to save image: " + ex.getMessage()).showAndWait();
+            } catch (Exception ex) {
+                new Alert(Alert.AlertType.ERROR, "Failed to update exhibit: " + ex.getMessage()).showAndWait();
             } finally {
                 ConnectionHolder.clear();
             }
@@ -167,14 +177,14 @@ public class AddExhibitForm extends VBox {
         );
     }
 
-    public static void showForm(Stage parentStage, ExhibitListView listView) {
+    public static void showForm(Stage parentStage, Exhibit exhibit, ExhibitListView listView) {
         Stage dialog = new Stage();
         dialog.initOwner(parentStage);
         dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.initStyle(StageStyle.UNDECORATED);
         dialog.setResizable(false);
 
-        AddExhibitForm form = new AddExhibitForm(parentStage, dialog, listView);
+        EditExhibitForm form = new EditExhibitForm(parentStage, dialog, exhibit, listView);
         Scene scene = new Scene(form, 450, 700);
         dialog.setScene(scene);
 

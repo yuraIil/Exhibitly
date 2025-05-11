@@ -52,7 +52,7 @@ public class ExhibitListView extends VBox {
 
         ImageView imageView = new ImageView();
         try {
-            File file = new File("images/" + exhibit.getMultimedia().getFilePath());
+            File file = new File("storage/images/" + exhibit.getMultimedia().getFilePath());
             if (file.exists()) {
                 imageView.setImage(new Image(file.toURI().toString()));
                 imageView.setFitWidth(100);
@@ -92,6 +92,35 @@ public class ExhibitListView extends VBox {
         }
     }
 
+    public void searchExhibits(String query) {
+        getChildren().clear();
+        exhibitCheckboxMap.clear();
+
+        Label title = new Label("Search Results");
+        title.setFont(Font.font("Arial", 20));
+        title.setStyle("-fx-text-fill: #1a3e2b; -fx-font-weight: bold;");
+        getChildren().add(title);
+
+        try {
+            Connection conn = new ConnectionPool().getConnection();
+            ConnectionHolder.set(conn);
+
+            List<Exhibit> all = ExhibitDao.getInstance().findAll();
+            for (Exhibit exhibit : all) {
+                String combined = (exhibit.getName() + exhibit.getDescription() + exhibit.getCategory().getName()).toLowerCase();
+                if (combined.contains(query.toLowerCase())) {
+                    addExhibitCard(exhibit);
+                }
+            }
+        } catch (Exception e) {
+            Label error = new Label("❌ Failed to search exhibits: " + e.getMessage());
+            error.setStyle("-fx-text-fill: red;");
+            getChildren().add(error);
+        } finally {
+            ConnectionHolder.clear();
+        }
+    }
+
     public List<Exhibit> getSelectedExhibits() {
         List<Exhibit> selected = new ArrayList<>();
         for (Map.Entry<Exhibit, CheckBox> entry : exhibitCheckboxMap.entrySet()) {
@@ -101,4 +130,18 @@ public class ExhibitListView extends VBox {
         }
         return selected;
     }
+    public void loadExhibits(List<Exhibit> exhibits) {
+        getChildren().clear();
+        exhibitCheckboxMap.clear();
+
+        Label title = new Label("Exhibits");
+        title.setFont(Font.font("Arial", 20));
+        title.setStyle("-fx-text-fill: #1a3e2b; -fx-font-weight: bold;");
+        getChildren().add(title);
+
+        for (Exhibit exhibit : exhibits) {
+            addExhibitCard(exhibit);
+        }
+    }
+
 }

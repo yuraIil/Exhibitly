@@ -150,4 +150,32 @@ public class ExhibitDao {
                 multimedia
         );
     }
+    public List<Exhibit> searchByNameOrDescription(String query) {
+        List<Exhibit> results = new ArrayList<>();
+        String sql = """
+        SELECT id, name, category_id, description, acquisition_date, multimedia_id
+        FROM exhibit
+        WHERE LOWER(name) LIKE LOWER(?) OR LOWER(description) LIKE LOWER(?)
+        """;
+
+        try (Connection conn = ConnectionHolder.get();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            String pattern = "%" + query + "%";
+            ps.setString(1, pattern);
+            ps.setString(2, pattern);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    results.add(buildExhibit(rs));
+                }
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to search exhibits", e);
+        }
+
+        return results;
+    }
+
 }
