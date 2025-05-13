@@ -10,6 +10,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * DAO (Data Access Object) для роботи з таблицею {@code exhibit}.
+ * Реалізує основні CRUD-операції для експонатів, а також пошук.
+ */
 public class ExhibitDao {
 
     private static final ExhibitDao INSTANCE = new ExhibitDao();
@@ -41,12 +45,26 @@ public class ExhibitDao {
         WHERE id = ?
         """;
 
+    /**
+     * Приватний конструктор для реалізації патерну Singleton.
+     */
     private ExhibitDao() {}
 
+    /**
+     * Повертає єдиний екземпляр ExhibitDao.
+     *
+     * @return екземпляр ExhibitDao
+     */
     public static ExhibitDao getInstance() {
         return INSTANCE;
     }
 
+    /**
+     * Додає новий експонат у базу даних.
+     *
+     * @param exhibit експонат, який потрібно зберегти
+     * @return збережений експонат з оновленим ID
+     */
     public Exhibit insert(Exhibit exhibit) {
         try (Connection conn = ConnectionHolder.get();
              PreparedStatement ps = conn.prepareStatement(INSERT_SQL, Statement.RETURN_GENERATED_KEYS)) {
@@ -70,6 +88,12 @@ public class ExhibitDao {
         }
     }
 
+    /**
+     * Шукає експонат за ID.
+     *
+     * @param id унікальний ідентифікатор експоната
+     * @return Optional з експонатом, якщо знайдено
+     */
     public Optional<Exhibit> findById(int id) {
         try (Connection conn = ConnectionHolder.get();
              PreparedStatement ps = conn.prepareStatement(SELECT_BY_ID_SQL)) {
@@ -88,6 +112,11 @@ public class ExhibitDao {
         }
     }
 
+    /**
+     * Повертає список усіх експонатів з бази даних.
+     *
+     * @return список експонатів
+     */
     public List<Exhibit> findAll() {
         List<Exhibit> exhibits = new ArrayList<>();
         try (Connection conn = ConnectionHolder.get();
@@ -104,6 +133,12 @@ public class ExhibitDao {
         return exhibits;
     }
 
+    /**
+     * Оновлює наявний експонат у базі.
+     *
+     * @param exhibit оновлений об'єкт
+     * @return {@code true}, якщо оновлення відбулося успішно
+     */
     public boolean update(Exhibit exhibit) {
         try (Connection conn = ConnectionHolder.get();
              PreparedStatement ps = conn.prepareStatement(UPDATE_SQL)) {
@@ -121,6 +156,12 @@ public class ExhibitDao {
         }
     }
 
+    /**
+     * Видаляє експонат з бази за ID.
+     *
+     * @param id ідентифікатор експоната
+     * @return {@code true}, якщо видалення пройшло успішно
+     */
     public boolean delete(int id) {
         try (Connection conn = ConnectionHolder.get();
              PreparedStatement ps = conn.prepareStatement(DELETE_SQL)) {
@@ -132,6 +173,13 @@ public class ExhibitDao {
         }
     }
 
+    /**
+     * Побудова об'єкта Exhibit з ResultSet.
+     *
+     * @param rs результат SQL-запиту
+     * @return об'єкт Exhibit
+     * @throws SQLException якщо виникає помилка при зчитуванні
+     */
     private Exhibit buildExhibit(ResultSet rs) throws SQLException {
         int multimediaId = rs.getInt("multimedia_id");
         Multimedia multimedia = MultimediaDao.getInstance().findById(multimediaId)
@@ -150,6 +198,13 @@ public class ExhibitDao {
                 multimedia
         );
     }
+
+    /**
+     * Пошук експонатів за назвою або описом (часткове співпадіння).
+     *
+     * @param query ключове слово для пошуку
+     * @return список знайдених експонатів
+     */
     public List<Exhibit> searchByNameOrDescription(String query) {
         List<Exhibit> results = new ArrayList<>();
         String sql = """
@@ -177,5 +232,4 @@ public class ExhibitDao {
 
         return results;
     }
-
 }

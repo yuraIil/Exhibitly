@@ -9,8 +9,18 @@ import javafx.stage.Stage;
 
 import java.sql.Connection;
 
+/**
+ * Головний клас запуску JavaFX-застосунку Exhibitly.
+ * Відповідає за ініціалізацію підключення до бази даних, дефолтних категорій та запуск стартового екрану.
+ */
 public class ExhibitlyMain extends Application {
 
+    /**
+     * Метод, який викликається при запуску JavaFX-застосунку.
+     * Ініціалізує підключення до бази даних, дефолтні категорії та відкриває стартове вікно {@link IntroWindow}.
+     *
+     * @param primaryStage головне вікно JavaFX
+     */
     @Override
     public void start(Stage primaryStage) {
         try {
@@ -27,6 +37,11 @@ public class ExhibitlyMain extends Application {
         introWindow.showIntro(primaryStage);
     }
 
+    /**
+     * Точка входу в застосунок.
+     *
+     * @param args аргументи командного рядка (не використовуються)
+     */
     public static void main(String[] args) {
         launch(args);
     }

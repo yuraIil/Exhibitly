@@ -14,11 +14,19 @@ import javafx.stage.Stage;
 import java.sql.Connection;
 import java.util.List;
 
+/**
+ * Форма керування експонатами.
+ * Дозволяє здійснювати пошук, додавання, редагування та видалення експонатів.
+ */
 public class ExhibitManagerForm extends VBox {
 
     private final ExhibitListView exhibitListView;
     private final TextField searchField;
 
+    /**
+     * Конструктор створює інтерфейс для управління експонатами:
+     * включає пошук, список експонатів, кнопки "Add", "Edit", "Delete".
+     */
     public ExhibitManagerForm() {
         setSpacing(20);
         setPadding(new Insets(30));

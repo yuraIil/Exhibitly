@@ -6,6 +6,10 @@ import com.yuralil.infrastructure.util.ConnectionHolder;
 import java.sql.*;
 import java.util.Optional;
 
+/**
+ * DAO (Data Access Object) для роботи з таблицею {@code report}.
+ * Дозволяє виконувати CRUD-операції для об'єктів звітів.
+ */
 public class ReportDao {
 
     private static final ReportDao INSTANCE = new ReportDao();
@@ -32,12 +36,26 @@ public class ReportDao {
         WHERE id = ?
         """;
 
+    /**
+     * Приватний конструктор для реалізації патерну Singleton.
+     */
     private ReportDao() {}
 
+    /**
+     * Повертає єдиний екземпляр {@code ReportDao}.
+     *
+     * @return екземпляр ReportDao
+     */
     public static ReportDao getInstance() {
         return INSTANCE;
     }
 
+    /**
+     * Додає новий звіт до бази даних.
+     *
+     * @param report обʼєкт {@link Report}, який потрібно зберегти
+     * @return збережений звіт з оновленим ID
+     */
     public Report insert(Report report) {
         try (Connection conn = ConnectionHolder.get();
              PreparedStatement ps = conn.prepareStatement(INSERT_SQL, Statement.RETURN_GENERATED_KEYS)) {
@@ -59,6 +77,12 @@ public class ReportDao {
         }
     }
 
+    /**
+     * Знаходить звіт за його ID.
+     *
+     * @param id ідентифікатор звіту
+     * @return {@link Optional} з об'єктом {@link Report}, якщо знайдено
+     */
     public Optional<Report> findById(int id) {
         try (Connection conn = ConnectionHolder.get();
              PreparedStatement ps = conn.prepareStatement(SELECT_BY_ID_SQL)) {
@@ -82,6 +106,12 @@ public class ReportDao {
         }
     }
 
+    /**
+     * Оновлює звіт у базі даних.
+     *
+     * @param report обʼєкт {@link Report} з оновленими даними
+     * @return {@code true}, якщо оновлення пройшло успішно
+     */
     public boolean update(Report report) {
         try (Connection conn = ConnectionHolder.get();
              PreparedStatement ps = conn.prepareStatement(UPDATE_SQL)) {
@@ -97,6 +127,12 @@ public class ReportDao {
         }
     }
 
+    /**
+     * Видаляє звіт за його ID.
+     *
+     * @param id ідентифікатор звіту
+     * @return {@code true}, якщо видалення пройшло успішно
+     */
     public boolean delete(int id) {
         try (Connection conn = ConnectionHolder.get();
              PreparedStatement ps = conn.prepareStatement(DELETE_SQL)) {

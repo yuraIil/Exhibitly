@@ -18,8 +18,18 @@ import javafx.util.Duration;
 
 import java.util.List;
 
+/**
+ * Початкове вікно (Splash screen) з анімацією та ефектами для логотипу Exhibitly.
+ * Після анімації переходить до AuthWindow.
+ */
 public class IntroWindow {
 
+    /**
+     * Показує анімоване вступне вікно з розмитими колами та логотипом.
+     * Після завершення анімації автоматично відкривається AuthWindow.
+     *
+     * @param stage головне вікно програми
+     */
     public void showIntro(Stage stage) {
         Font lalezar = Font.loadFont(
                 getClass().getResource("/Lalezar-Regular.ttf").toExternalForm(), 60
@@ -55,20 +65,18 @@ public class IntroWindow {
         root.setStyle("-fx-background-color: #f8f9fa;");
         Scene scene = new Scene(root, width, height);
 
-        // ⌨️ Перемикання фулскрін по F11
         scene.setOnKeyPressed(keyEvent -> {
             if (keyEvent.getCode() == KeyCode.F11) {
                 if (stage.isFullScreen()) {
                     stage.setFullScreen(false);
                     stage.setWidth(800);
                     stage.setHeight(600);
-                    stage.centerOnScreen(); // Центруємо після зміни розміру
+                    stage.centerOnScreen();
                 } else {
                     stage.setFullScreen(true);
                 }
             }
         });
-
 
         for (int i = 0; i < circleList.size(); i++) {
             animateCircle(circleList.get(i), i * 50);
@@ -118,7 +126,15 @@ public class IntroWindow {
         sequence.play();
     }
 
-
+    /**
+     * Створює коло з ефектом розмиття та початковою прозорістю для анімації.
+     *
+     * @param radius   радіус кола
+     * @param color    колір кола
+     * @param layoutX  позиція по X
+     * @param layoutY  позиція по Y
+     * @return створене коло
+     */
     private Circle createAnimatedCircle(double radius, Color color, double layoutX, double layoutY) {
         Circle circle = new Circle(radius, color);
         circle.setOpacity(0);
@@ -130,6 +146,12 @@ public class IntroWindow {
         return circle;
     }
 
+    /**
+     * Анімує коло (ефект появи і масштабування).
+     *
+     * @param circle       обʼєкт кола
+     * @param delayMillis  затримка перед початком анімації
+     */
     private void animateCircle(Circle circle, int delayMillis) {
         FadeTransition fade = new FadeTransition(Duration.seconds(1.6), circle);
         fade.setFromValue(0);

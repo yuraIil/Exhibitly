@@ -6,6 +6,10 @@ import com.yuralil.infrastructure.util.ConnectionHolder;
 import java.sql.*;
 import java.util.Optional;
 
+/**
+ * DAO (Data Access Object) для роботи з таблицею {@code users}.
+ * Дозволяє виконувати базові CRUD-операції над обліковими записами користувачів.
+ */
 public class UsersDao {
 
     private static final UsersDao INSTANCE = new UsersDao();
@@ -32,12 +36,26 @@ public class UsersDao {
         WHERE id = ?
         """;
 
+    /**
+     * Приватний конструктор для реалізації патерну Singleton.
+     */
     private UsersDao() {}
 
+    /**
+     * Повертає єдиний екземпляр {@code UsersDao}.
+     *
+     * @return екземпляр UsersDao
+     */
     public static UsersDao getInstance() {
         return INSTANCE;
     }
 
+    /**
+     * Додає нового користувача до бази даних.
+     *
+     * @param user обʼєкт {@link Users}, який потрібно зберегти
+     * @return збережений користувач з оновленим ID
+     */
     public Users insert(Users user) {
         try (Connection connection = ConnectionHolder.get();
              PreparedStatement ps = connection.prepareStatement(INSERT_SQL, Statement.RETURN_GENERATED_KEYS)) {
@@ -59,6 +77,12 @@ public class UsersDao {
         }
     }
 
+    /**
+     * Оновлює існуючого користувача у базі даних.
+     *
+     * @param user обʼєкт {@link Users} з оновленими полями
+     * @return {@code true}, якщо оновлення пройшло успішно
+     */
     public boolean update(Users user) {
         try (Connection connection = ConnectionHolder.get();
              PreparedStatement ps = connection.prepareStatement(UPDATE_SQL)) {
@@ -74,6 +98,12 @@ public class UsersDao {
         }
     }
 
+    /**
+     * Видаляє користувача з бази за ID.
+     *
+     * @param id унікальний ідентифікатор користувача
+     * @return {@code true}, якщо видалення пройшло успішно
+     */
     public boolean delete(int id) {
         try (Connection connection = ConnectionHolder.get();
              PreparedStatement ps = connection.prepareStatement(DELETE_SQL)) {
@@ -85,6 +115,12 @@ public class UsersDao {
         }
     }
 
+    /**
+     * Шукає користувача за його ID.
+     *
+     * @param id унікальний ідентифікатор
+     * @return {@link Optional} з обʼєктом {@link Users}, якщо знайдено
+     */
     public Optional<Users> findById(int id) {
         try (Connection connection = ConnectionHolder.get();
              PreparedStatement ps = connection.prepareStatement(SELECT_BY_ID_SQL)) {
@@ -102,6 +138,13 @@ public class UsersDao {
         }
     }
 
+    /**
+     * Створює обʼєкт {@link Users} з даних ResultSet.
+     *
+     * @param rs результат виконаного SQL-запиту
+     * @return обʼєкт {@link Users}
+     * @throws SQLException якщо виникла помилка при читанні з ResultSet
+     */
     private Users buildUser(ResultSet rs) throws SQLException {
         return new Users(
                 rs.getInt("id"),

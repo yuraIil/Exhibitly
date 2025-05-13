@@ -8,6 +8,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * DAO (Data Access Object) для роботи з таблицею {@code category}.
+ * Реалізує CRUD-операції для категорій.
+ */
 public class CategoryDao {
 
     private static final CategoryDao INSTANCE = new CategoryDao();
@@ -25,13 +29,24 @@ public class CategoryDao {
         SELECT id, name, description FROM category WHERE id = ?
         """;
 
+    /**
+     * Приватний конструктор для синглтона.
+     */
     private CategoryDao() {
     }
 
+    /**
+     * Повертає єдиний екземпляр DAO.
+     *
+     * @return екземпляр {@code CategoryDao}
+     */
     public static CategoryDao getInstance() {
         return INSTANCE;
     }
 
+    /**
+     * Ініціалізує стандартні категорії, якщо вони ще не існують у базі.
+     */
     public void initDefaults() {
         List<String> defaultNames = List.of(
                 "Painting", "Sculpture", "Photograph", "Document", "Artifact",
@@ -45,6 +60,12 @@ public class CategoryDao {
         }
     }
 
+    /**
+     * Перевіряє, чи існує категорія з вказаною назвою.
+     *
+     * @param name назва категорії
+     * @return {@code true} якщо існує, {@code false} інакше
+     */
     private boolean existsByName(String name) {
         String sql = "SELECT 1 FROM category WHERE name = ?";
         try (Connection conn = ConnectionHolder.get();
@@ -58,6 +79,12 @@ public class CategoryDao {
         }
     }
 
+    /**
+     * Додає нову категорію до бази даних.
+     *
+     * @param category об'єкт {@link Category}, який потрібно зберегти
+     * @return збережений об'єкт з оновленим ID
+     */
     public Category insert(Category category) {
         try (Connection conn = ConnectionHolder.get();
              PreparedStatement ps = conn.prepareStatement(INSERT_SQL, Statement.RETURN_GENERATED_KEYS)) {
@@ -77,6 +104,11 @@ public class CategoryDao {
         }
     }
 
+    /**
+     * Повертає список усіх категорій з бази даних.
+     *
+     * @return список об'єктів {@link Category}
+     */
     public List<Category> findAll() {
         List<Category> categories = new ArrayList<>();
         try (Connection conn = ConnectionHolder.get();
@@ -95,6 +127,12 @@ public class CategoryDao {
         return categories;
     }
 
+    /**
+     * Повертає категорію за її ID.
+     *
+     * @param id ідентифікатор категорії
+     * @return {@link Optional} з об'єктом {@link Category}, якщо знайдено
+     */
     public Optional<Category> findById(int id) {
         try (Connection conn = ConnectionHolder.get();
              PreparedStatement ps = conn.prepareStatement(SELECT_BY_ID_SQL)) {
@@ -112,5 +150,4 @@ public class CategoryDao {
             throw new RuntimeException("Failed to find category by ID", e);
         }
     }
-
 }

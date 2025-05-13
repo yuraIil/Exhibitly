@@ -15,10 +15,16 @@ import java.io.File;
 import java.sql.Connection;
 import java.util.*;
 
+/**
+ * Компонент для відображення списку експонатів з підтримкою вибору, пошуку та завантаження.
+ */
 public class ExhibitListView extends VBox {
 
     private final Map<Exhibit, CheckBox> exhibitCheckboxMap = new LinkedHashMap<>();
 
+    /**
+     * Конструктор створює візуальний компонент і одразу завантажує експонати з бази.
+     */
     public ExhibitListView() {
         setSpacing(12);
         setPadding(new Insets(10));
@@ -26,6 +32,11 @@ public class ExhibitListView extends VBox {
         loadExhibitsFromDb();
     }
 
+    /**
+     * Додає картку експоната у вигляді VBox з усіма його даними та чекбоксом вибору.
+     *
+     * @param exhibit експонат для відображення
+     */
     public void addExhibitCard(Exhibit exhibit) {
         VBox card = new VBox(6);
         card.setPadding(new Insets(12));
@@ -52,7 +63,8 @@ public class ExhibitListView extends VBox {
 
         ImageView imageView = new ImageView();
         try {
-            File file = new File("storage/images/" + exhibit.getMultimedia().getFilePath());
+            File file = new File("src/main/resources/images/" + exhibit.getMultimedia().getFilePath());
+
             if (file.exists()) {
                 imageView.setImage(new Image(file.toURI().toString()));
                 imageView.setFitWidth(100);
@@ -67,6 +79,9 @@ public class ExhibitListView extends VBox {
         getChildren().add(card);
     }
 
+    /**
+     * Завантажує всі експонати з бази даних і додає їх у список.
+     */
     public void loadExhibitsFromDb() {
         getChildren().clear();
         exhibitCheckboxMap.clear();
@@ -92,6 +107,11 @@ public class ExhibitListView extends VBox {
         }
     }
 
+    /**
+     * Виконує пошук експонатів за ключовим словом та відображає результати.
+     *
+     * @param query текст пошуку (нечутливий до регістру)
+     */
     public void searchExhibits(String query) {
         getChildren().clear();
         exhibitCheckboxMap.clear();
@@ -121,6 +141,11 @@ public class ExhibitListView extends VBox {
         }
     }
 
+    /**
+     * Повертає список усіх вибраних експонатів (із відміченими чекбоксами).
+     *
+     * @return список вибраних експонатів
+     */
     public List<Exhibit> getSelectedExhibits() {
         List<Exhibit> selected = new ArrayList<>();
         for (Map.Entry<Exhibit, CheckBox> entry : exhibitCheckboxMap.entrySet()) {
@@ -130,6 +155,12 @@ public class ExhibitListView extends VBox {
         }
         return selected;
     }
+
+    /**
+     * Завантажує та відображає список переданих експонатів.
+     *
+     * @param exhibits список експонатів для відображення
+     */
     public void loadExhibits(List<Exhibit> exhibits) {
         getChildren().clear();
         exhibitCheckboxMap.clear();
@@ -143,5 +174,4 @@ public class ExhibitListView extends VBox {
             addExhibitCard(exhibit);
         }
     }
-
 }

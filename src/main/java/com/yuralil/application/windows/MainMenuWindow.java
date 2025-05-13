@@ -15,6 +15,10 @@ import javafx.stage.Stage;
 
 import java.util.*;
 
+/**
+ * Головне меню застосунку Exhibitly. Включає навігацію між секціями (меню),
+ * адаптивне оформлення, фонову графіку та підтримку повноекранного режиму.
+ */
 public class MainMenuWindow {
 
     private final String baseStyle = "-fx-font-size: 14px; -fx-text-fill: #1a3e2b;";
@@ -23,10 +27,22 @@ public class MainMenuWindow {
     private VBox rightPanel;
     private String userRole = "user";
 
+    /**
+     * Встановлює роль користувача (наприклад, "user" або "visitor").
+     * Визначає доступні пункти меню.
+     *
+     * @param role рядок із назвою ролі
+     */
     public void setUserRole(String role) {
         this.userRole = role;
     }
 
+    /**
+     * Ініціалізує головне меню та встановлює його у вказане вікно.
+     *
+     * @param stage       вікно, у якому відображається меню
+     * @param fullScreen  чи запускати у повноекранному режимі
+     */
     public void show(Stage stage, boolean fullScreen) {
         double width = stage.getWidth();
         double height = stage.getHeight();
@@ -110,6 +126,11 @@ public class MainMenuWindow {
         }
     }
 
+    /**
+     * Змінює активний пункт меню та завантажує відповідний вміст у праву панель.
+     *
+     * @param selected пункт меню, який було натиснуто
+     */
     private void setActiveItem(Label selected) {
         if (activeItem != null) activeItem.setStyle(baseStyle);
         activeItem = selected;
@@ -128,12 +149,24 @@ public class MainMenuWindow {
         rightPanel = newContent;
     }
 
+    /**
+     * Застосовує стилі до правої панелі (вмісту).
+     *
+     * @param panel VBox, до якого застосовується стиль
+     */
     private void styleRightPanel(VBox panel) {
         panel.setStyle("-fx-background-color: transparent;");
         panel.setPadding(new Insets(0));
         VBox.setVgrow(panel, Priority.ALWAYS);
     }
 
+    /**
+     * Створює фон з кольорових розмитих кіл.
+     *
+     * @param width  ширина вікна
+     * @param height висота вікна
+     * @return панель із колами
+     */
     private Pane createBackgroundCircles(double width, double height) {
         Pane pane = new Pane();
         pane.setPrefSize(width, height);
@@ -150,6 +183,16 @@ public class MainMenuWindow {
         return pane;
     }
 
+    /**
+     * Створює розмите коло з заданими параметрами.
+     *
+     * @param radius  радіус кола
+     * @param color   колір кола
+     * @param x       координата X
+     * @param y       координата Y
+     * @param opacity прозорість
+     * @return розмите коло
+     */
     private Circle createBlurredCircle(double radius, Color color, double x, double y, double opacity) {
         Circle circle = new Circle(radius, color);
         circle.setOpacity(opacity);

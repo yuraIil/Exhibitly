@@ -10,8 +10,22 @@ import javafx.scene.layout.*;
 import javafx.stage.*;
 import javafx.util.Duration;
 
+/**
+ * Клас ConfirmDialog надає два типи вікон:
+ * - підтвердження дії (з кнопками OK/Cancel)
+ * - попередження (з однією кнопкою OK)
+ * Вікна мають плавну анімацію появи та позиціонуються по центру відносно власника.
+ */
 public class ConfirmDialog {
 
+    /**
+     * Показує діалогове вікно з повідомленням і кнопками "OK" та "Cancel".
+     * При підтвердженні виконується передана дія.
+     *
+     * @param message    текст повідомлення
+     * @param onConfirm  дія, яку слід виконати при натисканні OK
+     * @param owner      вікно, відносно якого позиціюється діалог
+     */
     public static void show(String message, Runnable onConfirm, Window owner) {
         Stage dialog = new Stage();
         dialog.initOwner(owner);
@@ -56,13 +70,18 @@ public class ConfirmDialog {
         centerOnOwner(dialog, owner);
         dialog.show();
 
-        // Fade in animation
         FadeTransition fade = new FadeTransition(Duration.millis(200), layout);
         layout.setOpacity(0);
         fade.setToValue(1);
         fade.play();
     }
 
+    /**
+     * Показує попереджувальне повідомлення з однією кнопкою "OK".
+     *
+     * @param message повідомлення для відображення
+     * @param owner   вікно, відносно якого позиціюється діалог
+     */
     public static void showWarning(String message, Window owner) {
         Stage dialog = new Stage();
         dialog.initOwner(owner);
@@ -101,6 +120,13 @@ public class ConfirmDialog {
         fade.play();
     }
 
+    /**
+     * Центрує діалогове вікно по центру вікна-власника
+     * та оновлює позицію при зміні розмірів або координат.
+     *
+     * @param dialog діалог, який потрібно центрувати
+     * @param owner  вікно, відносно якого центрується діалог
+     */
     private static void centerOnOwner(Stage dialog, Window owner) {
         dialog.setOnShown(e -> {
             dialog.setX(owner.getX() + (owner.getWidth() - dialog.getWidth()) / 2);

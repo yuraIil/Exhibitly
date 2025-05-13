@@ -27,6 +27,10 @@ import java.nio.file.*;
 import java.sql.Connection;
 import java.time.LocalDate;
 
+/**
+ * A form for adding a new exhibit, including fields for name, category, date,
+ * description, and photo selection. Saves data to the database and displays the image.
+ */
 public class AddExhibitForm extends VBox {
 
     private final TextField nameField = new TextField();
@@ -37,6 +41,13 @@ public class AddExhibitForm extends VBox {
     private final ImageView previewImage = new ImageView();
     private File selectedPhotoFile;
 
+    /**
+     * Constructs the AddExhibitForm UI and sets up all input fields and event handlers.
+     *
+     * @param ownerStage the parent window stage
+     * @param dialog     the dialog stage that contains the form
+     * @param listView   the ExhibitListView to refresh after adding a new exhibit
+     */
     public AddExhibitForm(Stage ownerStage, Stage dialog, ExhibitListView listView) {
         setSpacing(10);
         setPadding(new Insets(20));
@@ -124,16 +135,15 @@ public class AddExhibitForm extends VBox {
                 Connection conn = new com.yuralil.infrastructure.util.ConnectionPool().getConnection();
                 ConnectionHolder.set(conn);
 
-                Path imagesDir = Path.of("storage/images");
+                Path imagesDir = Path.of("src/main/resources/images");
                 if (!Files.exists(imagesDir)) Files.createDirectories(imagesDir);
                 Path destPath = imagesDir.resolve(selectedPhotoFile.getName());
                 Files.copy(selectedPhotoFile.toPath(), destPath, StandardCopyOption.REPLACE_EXISTING);
 
                 Multimedia multimedia = new Multimedia();
                 multimedia.setType("image");
-                multimedia.setFilePath(selectedPhotoFile.getName()); // тільки назва файлу
+                multimedia.setFilePath(selectedPhotoFile.getName());
                 multimedia = MultimediaDao.getInstance().insert(multimedia);
-
 
                 Category category = categoryComboBox.getValue();
 
@@ -167,6 +177,12 @@ public class AddExhibitForm extends VBox {
         );
     }
 
+    /**
+     * Displays the add exhibit form in a modal dialog with fade-in animation.
+     *
+     * @param parentStage the parent window stage
+     * @param listView    the ExhibitListView to refresh after adding
+     */
     public static void showForm(Stage parentStage, ExhibitListView listView) {
         Stage dialog = new Stage();
         dialog.initOwner(parentStage);

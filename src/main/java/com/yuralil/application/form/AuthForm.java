@@ -6,6 +6,10 @@ import javafx.scene.control.*;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
+/**
+ * JavaFX форма для авторизації та реєстрації користувача.
+ * Містить поля для email, пароля, вибору ролі та кнопки дії.
+ */
 public class AuthForm extends VBox {
 
     private final Label emailLabel = new Label("Email");
@@ -23,27 +27,31 @@ public class AuthForm extends VBox {
 
     private final VBox fields = new VBox(6);
 
+    /**
+     * Режими форми: вхід або реєстрація.
+     */
     public enum Mode { LOGIN, REGISTER }
+
     private Mode currentMode = Mode.LOGIN;
 
+    /**
+     * Конструктор, який ініціалізує форму авторизації/реєстрації.
+     */
     public AuthForm() {
         setSpacing(4);
         setPadding(new Insets(0));
         setAlignment(Pos.CENTER);
 
-        // Email
         emailLabel.setStyle("-fx-font-size: 13px;");
         emailField.setPromptText("Email");
         emailField.setMaxWidth(250);
         emailField.setStyle(getFieldStyle());
 
-        // Password
         passwordLabel.setStyle("-fx-font-size: 13px;");
         passwordField.setPromptText("Password");
         passwordField.setMaxWidth(250);
         passwordField.setStyle(getFieldStyle());
 
-        // Role
         roleLabel.setStyle("-fx-font-size: 13px;");
         roleChoice.getItems().addAll("visitor", "scientific_staff", "administrator");
         roleChoice.setValue("visitor");
@@ -58,7 +66,6 @@ public class AuthForm extends VBox {
             -fx-text-fill: #333;
         """);
 
-        // Button
         actionButton.setPrefWidth(250);
         actionButton.setStyle("""
             -fx-background-color: #2a5e3f;
@@ -77,6 +84,9 @@ public class AuthForm extends VBox {
         switchToLogin();
     }
 
+    /**
+     * Переключає форму у режим входу.
+     */
     public void switchToLogin() {
         currentMode = Mode.LOGIN;
         fields.getChildren().setAll(
@@ -89,6 +99,9 @@ public class AuthForm extends VBox {
         actionButton.setText("Log in");
     }
 
+    /**
+     * Переключає форму у режим реєстрації.
+     */
     public void switchToRegister() {
         currentMode = Mode.REGISTER;
         fields.getChildren().setAll(
@@ -100,26 +113,56 @@ public class AuthForm extends VBox {
         actionButton.setText("Register");
     }
 
+    /**
+     * Повертає поточний режим форми.
+     *
+     * @return режим (LOGIN або REGISTER)
+     */
     public Mode getCurrentMode() {
         return currentMode;
     }
 
+    /**
+     * Повертає кнопку дії (Login/Register).
+     *
+     * @return кнопка для виконання дії
+     */
     public Button getActionButton() {
         return actionButton;
     }
 
+    /**
+     * Повертає текстове поле для email.
+     *
+     * @return поле для введення email
+     */
     public TextField getEmailField() {
         return emailField;
     }
 
+    /**
+     * Повертає поле для введення пароля.
+     *
+     * @return поле пароля
+     */
     public PasswordField getPasswordField() {
         return passwordField;
     }
 
+    /**
+     * Повертає вибір ролі користувача.
+     *
+     * @return ChoiceBox з доступними ролями
+     */
     public ChoiceBox<String> getRoleChoice() {
         return roleChoice;
     }
 
+    /**
+     * Стиль, який застосовується до текстових полів.
+     *
+     * @return CSS-рядок стилю
+     */
     private String getFieldStyle() {
         return """
             -fx-background-radius: 8;

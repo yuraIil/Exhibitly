@@ -7,6 +7,10 @@ import com.yuralil.infrastructure.util.ConnectionHolder;
 import java.sql.*;
 import java.util.Optional;
 
+/**
+ * DAO (Data Access Object) для таблиці {@code multimedia}.
+ * Дозволяє зберігати, оновлювати, видаляти та знаходити мультимедійні обʼєкти.
+ */
 public class MultimediaDao {
 
     private static final MultimediaDao INSTANCE = new MultimediaDao();
@@ -33,12 +37,26 @@ public class MultimediaDao {
         WHERE id = ?
         """;
 
+    /**
+     * Приватний конструктор для реалізації Singleton.
+     */
     private MultimediaDao() {}
 
+    /**
+     * Повертає єдиний екземпляр {@code MultimediaDao}.
+     *
+     * @return екземпляр {@code MultimediaDao}
+     */
     public static MultimediaDao getInstance() {
         return INSTANCE;
     }
 
+    /**
+     * Вставляє новий мультимедійний обʼєкт у базу даних.
+     *
+     * @param multimedia обʼєкт {@link Multimedia} для збереження
+     * @return збережений обʼєкт з оновленим ID
+     */
     public Multimedia insert(Multimedia multimedia) {
         try (Connection conn = ConnectionHolder.get();
              PreparedStatement ps = conn.prepareStatement(INSERT_SQL, Statement.RETURN_GENERATED_KEYS)) {
@@ -65,6 +83,12 @@ public class MultimediaDao {
         }
     }
 
+    /**
+     * Знаходить мультимедійний обʼєкт за його ID.
+     *
+     * @param id ідентифікатор мультимедіа
+     * @return {@link Optional} з обʼєктом {@link Multimedia}, якщо знайдено
+     */
     public Optional<Multimedia> findById(int id) {
         try (Connection conn = ConnectionHolder.get();
              PreparedStatement ps = conn.prepareStatement(SELECT_BY_ID_SQL)) {
@@ -91,6 +115,12 @@ public class MultimediaDao {
         }
     }
 
+    /**
+     * Оновлює існуючий мультимедійний обʼєкт у базі даних.
+     *
+     * @param multimedia обʼєкт {@link Multimedia} з оновленими даними
+     * @return {@code true}, якщо оновлення відбулося успішно
+     */
     public boolean update(Multimedia multimedia) {
         try (Connection conn = ConnectionHolder.get();
              PreparedStatement ps = conn.prepareStatement(UPDATE_SQL)) {
@@ -106,6 +136,12 @@ public class MultimediaDao {
         }
     }
 
+    /**
+     * Видаляє мультимедійний обʼєкт за ID.
+     *
+     * @param id ідентифікатор мультимедіа
+     * @return {@code true}, якщо видалення пройшло успішно
+     */
     public boolean delete(int id) {
         try (Connection conn = ConnectionHolder.get();
              PreparedStatement ps = conn.prepareStatement(DELETE_SQL)) {

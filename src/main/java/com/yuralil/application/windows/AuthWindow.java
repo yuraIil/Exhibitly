@@ -14,8 +14,17 @@ import javafx.stage.Stage;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Вікно авторизації, що містить вкладки "Login", "Register" та кнопку для гостя.
+ * Має анімований фон з кольоровими колами.
+ */
 public class AuthWindow {
 
+    /**
+     * Створює та повертає кореневий елемент інтерфейсу авторизаційного вікна.
+     *
+     * @return StackPane з усіма візуальними компонентами
+     */
     public StackPane getRoot() {
         Label title = new Label("Exhibitly");
         title.setStyle("""
@@ -98,11 +107,23 @@ public class AuthWindow {
         return root;
     }
 
+    /**
+     * Встановлює сцену цього вікна на переданий Stage.
+     *
+     * @param stage основне вікно, в якому буде відображено інтерфейс
+     */
     public void show(Stage stage) {
         Scene scene = new Scene(getRoot(), stage.getWidth(), stage.getHeight());
         stage.setScene(scene);
     }
 
+    /**
+     * Створює фонову панель із розмитими кольоровими колами для декору.
+     *
+     * @param width  ширина сцени
+     * @param height висота сцени
+     * @return панель з анімованими колами
+     */
     private Pane createBackgroundCircles(double width, double height) {
         Pane pane = new Pane();
         pane.setPrefSize(width, height);
@@ -123,6 +144,16 @@ public class AuthWindow {
         return pane;
     }
 
+    /**
+     * Створює окреме коло з розмиттям для фонового оформлення.
+     *
+     * @param radius   радіус кола
+     * @param color    колір кола
+     * @param layoutX  позиція по X
+     * @param layoutY  позиція по Y
+     * @param opacity  прозорість
+     * @return обʼєкт кола з ефектом розмиття
+     */
     private Circle createBlurredCircle(double radius, Color color, double layoutX, double layoutY, double opacity) {
         Circle circle = new Circle(radius, color);
         circle.setOpacity(opacity);
@@ -132,6 +163,12 @@ public class AuthWindow {
         return circle;
     }
 
+    /**
+     * Застосовує стиль до кнопки вкладки ("Login" або "Register") в залежності від активності.
+     *
+     * @param button кнопка, до якої застосовується стиль
+     * @param active чи активна кнопка
+     */
     private void styleTabButton(Button button, boolean active) {
         button.setStyle(
                 active

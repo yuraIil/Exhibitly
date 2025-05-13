@@ -26,6 +26,10 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.sql.Connection;
 
+/**
+ * JavaFX форма для редагування наявного експоната.
+ * Дозволяє змінити назву, категорію, опис, дату надходження та фото.
+ */
 public class EditExhibitForm extends VBox {
 
     private final TextField nameField = new TextField();
@@ -36,6 +40,14 @@ public class EditExhibitForm extends VBox {
     private final ImageView previewImage = new ImageView();
     private File selectedPhotoFile;
 
+    /**
+     * Конструктор форми редагування експоната.
+     *
+     * @param ownerStage вікно-власник
+     * @param dialog     діалогове вікно, в якому відкривається форма
+     * @param exhibit    експонат, який редагується
+     * @param listView   список експонатів, який оновлюється після редагування
+     */
     public EditExhibitForm(Stage ownerStage, Stage dialog, Exhibit exhibit, ExhibitListView listView) {
         setSpacing(10);
         setPadding(new Insets(20));
@@ -73,6 +85,7 @@ public class EditExhibitForm extends VBox {
         } finally {
             ConnectionHolder.clear();
         }
+
         categoryComboBox.setMaxWidth(Double.MAX_VALUE);
         categoryComboBox.setValue(exhibit.getCategory());
 
@@ -119,6 +132,7 @@ public class EditExhibitForm extends VBox {
             -fx-padding: 6 16;
             -fx-background-radius: 6;
         """);
+
         saveButton.setOnAction(e -> {
             if (nameField.getText().isBlank() ||
                     categoryComboBox.getValue() == null ||
@@ -177,6 +191,13 @@ public class EditExhibitForm extends VBox {
         );
     }
 
+    /**
+     * Показує модальне вікно редагування експоната.
+     *
+     * @param parentStage головне вікно
+     * @param exhibit     експонат для редагування
+     * @param listView    список експонатів для оновлення після збереження
+     */
     public static void showForm(Stage parentStage, Exhibit exhibit, ExhibitListView listView) {
         Stage dialog = new Stage();
         dialog.initOwner(parentStage);
