@@ -1,5 +1,6 @@
 package com.yuralil.application.form;
 
+import com.yuralil.application.components.ConfirmDialog;
 import com.yuralil.domain.dao.CategoryDao;
 import com.yuralil.domain.dao.ExhibitDao;
 import com.yuralil.domain.dao.MultimediaDao;
@@ -139,7 +140,7 @@ public class EditExhibitForm extends VBox {
                     acquisitionDate.getValue() == null ||
                     descriptionArea.getText().isBlank()) {
 
-                com.yuralil.components.ConfirmDialog.showWarning("Please fill in all required fields.", getScene().getWindow());
+                ConfirmDialog.showWarning("Please fill in all required fields.", getScene().getWindow());
                 return;
             }
 

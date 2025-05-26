@@ -1,6 +1,6 @@
 package com.yuralil.application.form;
 
-import com.yuralil.components.ConfirmDialog;
+import com.yuralil.application.components.ConfirmDialog;
 import com.yuralil.domain.dao.ExhibitDao;
 import com.yuralil.domain.entities.Exhibit;
 import com.yuralil.infrastructure.util.ConnectionHolder;

@@ -6,20 +6,17 @@ import javafx.scene.control.*;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
-/**
- * JavaFX форма для авторизації та реєстрації користувача.
- * Містить поля для email, пароля, вибору ролі та кнопки дії.
- */
 public class AuthForm extends VBox {
 
-    private final Label emailLabel = new Label("Email");
-    private final TextField emailField = new TextField();
+    private final Label loginLabel = new Label("Login");
+    private final TextField loginField = new TextField();
+    private final Label loginErrorLabel = new Label();
 
     private final Label passwordLabel = new Label("Password");
     private final PasswordField passwordField = new PasswordField();
+    private final Label passwordErrorLabel = new Label();
 
-    private final Label roleLabel = new Label("Role");
-    private final ChoiceBox<String> roleChoice = new ChoiceBox<>();
+    private final Label successLabel = new Label(); // ✅ успішне повідомлення
 
     private final Button actionButton = new Button();
     private final Label forgotPassword = new Label("Forgot password?");
@@ -27,44 +24,29 @@ public class AuthForm extends VBox {
 
     private final VBox fields = new VBox(6);
 
-    /**
-     * Режими форми: вхід або реєстрація.
-     */
     public enum Mode { LOGIN, REGISTER }
-
     private Mode currentMode = Mode.LOGIN;
 
-    /**
-     * Конструктор, який ініціалізує форму авторизації/реєстрації.
-     */
     public AuthForm() {
         setSpacing(4);
         setPadding(new Insets(0));
         setAlignment(Pos.CENTER);
 
-        emailLabel.setStyle("-fx-font-size: 13px;");
-        emailField.setPromptText("Email");
-        emailField.setMaxWidth(250);
-        emailField.setStyle(getFieldStyle());
+        loginLabel.setStyle("-fx-font-size: 13px;");
+        loginField.setPromptText("Login");
+        loginField.setMaxWidth(250);
+        loginField.setStyle(getFieldStyle());
+
+        loginErrorLabel.setStyle("-fx-text-fill: #cc0000; -fx-font-size: 11px;");
 
         passwordLabel.setStyle("-fx-font-size: 13px;");
         passwordField.setPromptText("Password");
         passwordField.setMaxWidth(250);
         passwordField.setStyle(getFieldStyle());
 
-        roleLabel.setStyle("-fx-font-size: 13px;");
-        roleChoice.getItems().addAll("visitor", "scientific_staff", "administrator");
-        roleChoice.setValue("visitor");
-        roleChoice.setMaxWidth(250);
-        roleChoice.setStyle("""
-            -fx-background-color: white;
-            -fx-border-color: #ccc;
-            -fx-border-radius: 8;
-            -fx-background-radius: 8;
-            -fx-padding: 6 10;
-            -fx-font-size: 13px;
-            -fx-text-fill: #333;
-        """);
+        passwordErrorLabel.setStyle("-fx-text-fill: #cc0000; -fx-font-size: 11px;");
+
+        successLabel.setStyle("-fx-text-fill: #2e7d32; -fx-font-size: 11px;");
 
         actionButton.setPrefWidth(250);
         actionButton.setStyle("""
@@ -84,14 +66,12 @@ public class AuthForm extends VBox {
         switchToLogin();
     }
 
-    /**
-     * Переключає форму у режим входу.
-     */
     public void switchToLogin() {
         currentMode = Mode.LOGIN;
+        clearFields();
         fields.getChildren().setAll(
-                emailLabel, emailField,
-                passwordLabel, passwordField,
+                loginLabel, successLabel, loginField, loginErrorLabel,
+                passwordLabel, passwordField, passwordErrorLabel,
                 spacer,
                 actionButton,
                 forgotPassword
@@ -99,70 +79,61 @@ public class AuthForm extends VBox {
         actionButton.setText("Log in");
     }
 
-    /**
-     * Переключає форму у режим реєстрації.
-     */
     public void switchToRegister() {
         currentMode = Mode.REGISTER;
+        clearFields();
         fields.getChildren().setAll(
-                emailLabel, emailField,
-                passwordLabel, passwordField,
-                roleLabel, roleChoice,
+                loginLabel, loginField, loginErrorLabel,
+                passwordLabel, passwordField, passwordErrorLabel,
                 actionButton
         );
         actionButton.setText("Register");
     }
 
-    /**
-     * Повертає поточний режим форми.
-     *
-     * @return режим (LOGIN або REGISTER)
-     */
     public Mode getCurrentMode() {
         return currentMode;
     }
 
-    /**
-     * Повертає кнопку дії (Login/Register).
-     *
-     * @return кнопка для виконання дії
-     */
     public Button getActionButton() {
         return actionButton;
     }
 
-    /**
-     * Повертає текстове поле для email.
-     *
-     * @return поле для введення email
-     */
     public TextField getEmailField() {
-        return emailField;
+        return loginField;
     }
 
-    /**
-     * Повертає поле для введення пароля.
-     *
-     * @return поле пароля
-     */
     public PasswordField getPasswordField() {
         return passwordField;
     }
 
-    /**
-     * Повертає вибір ролі користувача.
-     *
-     * @return ChoiceBox з доступними ролями
-     */
-    public ChoiceBox<String> getRoleChoice() {
-        return roleChoice;
+    public void showLoginError(String message) {
+        loginErrorLabel.setText(message);
     }
 
-    /**
-     * Стиль, який застосовується до текстових полів.
-     *
-     * @return CSS-рядок стилю
-     */
+    public void showPasswordError(String message) {
+        passwordErrorLabel.setText(message);
+    }
+
+    public void showSuccessMessage(String message) {
+        successLabel.setText(message);
+    }
+
+    public void clearErrors() {
+        loginErrorLabel.setText("");
+        passwordErrorLabel.setText("");
+    }
+
+    public void clearSuccess() {
+        successLabel.setText("");
+    }
+
+    private void clearFields() {
+        loginField.setText("");
+        passwordField.setText("");
+        clearErrors();
+        clearSuccess();
+    }
+
     private String getFieldStyle() {
         return """
             -fx-background-radius: 8;

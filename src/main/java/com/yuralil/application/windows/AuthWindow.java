@@ -1,6 +1,12 @@
 package com.yuralil.application.windows;
 
 import com.yuralil.application.form.AuthForm;
+import com.yuralil.application.service.ValidationService;
+import com.yuralil.domain.dao.UsersDao;
+import com.yuralil.domain.entities.Users;
+import com.yuralil.domain.enums.Role;
+import com.yuralil.domain.security.HashUtil;
+import com.yuralil.infrastructure.util.Session;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -14,17 +20,8 @@ import javafx.stage.Stage;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Вікно авторизації, що містить вкладки "Login", "Register" та кнопку для гостя.
- * Має анімований фон з кольоровими колами.
- */
 public class AuthWindow {
 
-    /**
-     * Створює та повертає кореневий елемент інтерфейсу авторизаційного вікна.
-     *
-     * @return StackPane з усіма візуальними компонентами
-     */
     public StackPane getRoot() {
         Label title = new Label("Exhibitly");
         title.setStyle("""
@@ -36,12 +33,49 @@ public class AuthWindow {
         AuthForm authForm = new AuthForm();
 
         authForm.getActionButton().setOnAction(e -> {
+            String login = authForm.getEmailField().getText();
+            String password = authForm.getPasswordField().getText();
+            UsersDao usersDao = UsersDao.getInstance();
+            ValidationService validationService = ValidationService.getInstance();
+            authForm.clearErrors();
+            authForm.clearSuccess();
+
             if (authForm.getCurrentMode() == AuthForm.Mode.LOGIN) {
-                Stage stage = (Stage) authForm.getScene().getWindow();
-                boolean wasFullScreen = stage.isFullScreen();
-                MainMenuWindow mainMenuWindow = new MainMenuWindow();
-                mainMenuWindow.setUserRole("user");
-                mainMenuWindow.show(stage, wasFullScreen);
+                String hashedPassword = HashUtil.hash(password);
+                usersDao.findByUsernameAndPassword(login, hashedPassword).ifPresentOrElse(user -> {
+                    Session.setCurrentUser(user);
+                    Stage stage = (Stage) authForm.getScene().getWindow();
+                    boolean wasFullScreen = stage.isFullScreen();
+                    MainMenuWindow mainMenuWindow = new MainMenuWindow();
+                    mainMenuWindow.setUserRole(user.getRole().name().toLowerCase());
+                    mainMenuWindow.show(stage, wasFullScreen);
+                }, () -> {
+                    authForm.showLoginError("Невірний логін або пароль");
+                    authForm.showPasswordError("Перевірте введені дані");
+                });
+
+            } else {
+                List<String> errors = validationService.validateRegistration(login, password);
+                for (String error : errors) {
+                    if (error.toLowerCase().contains("логін")) {
+                        authForm.showLoginError(error);
+                    } else if (error.toLowerCase().contains("пароль")) {
+                        authForm.showPasswordError(error);
+                    }
+                }
+
+                if (!errors.isEmpty()) return;
+
+                String hashedPassword = HashUtil.hash(password);
+                Users newUser = new Users(login, hashedPassword, Role.VISITOR);
+                usersDao.insert(newUser);
+
+                authForm.switchToLogin();
+                authForm.clearErrors();
+                authForm.clearSuccess();
+                authForm.getEmailField().setText(login);
+                authForm.getPasswordField().setText("");
+                authForm.showSuccessMessage("Реєстрація успішна. Увійдіть.");
             }
         });
 
@@ -77,10 +111,11 @@ public class AuthWindow {
             -fx-font-weight: bold;
         """);
         guestButton.setOnAction(e -> {
+            Session.setCurrentUser(new Users("Гість", "", Role.GUEST));
             Stage stage = (Stage) guestButton.getScene().getWindow();
             boolean wasFullScreen = stage.isFullScreen();
             MainMenuWindow mainMenuWindow = new MainMenuWindow();
-            mainMenuWindow.setUserRole("visitor");
+            mainMenuWindow.setUserRole("guest");
             mainMenuWindow.show(stage, wasFullScreen);
         });
 
@@ -107,23 +142,11 @@ public class AuthWindow {
         return root;
     }
 
-    /**
-     * Встановлює сцену цього вікна на переданий Stage.
-     *
-     * @param stage основне вікно, в якому буде відображено інтерфейс
-     */
     public void show(Stage stage) {
         Scene scene = new Scene(getRoot(), stage.getWidth(), stage.getHeight());
         stage.setScene(scene);
     }
 
-    /**
-     * Створює фонову панель із розмитими кольоровими колами для декору.
-     *
-     * @param width  ширина сцени
-     * @param height висота сцени
-     * @return панель з анімованими колами
-     */
     private Pane createBackgroundCircles(double width, double height) {
         Pane pane = new Pane();
         pane.setPrefSize(width, height);
@@ -144,16 +167,6 @@ public class AuthWindow {
         return pane;
     }
 
-    /**
-     * Створює окреме коло з розмиттям для фонового оформлення.
-     *
-     * @param radius   радіус кола
-     * @param color    колір кола
-     * @param layoutX  позиція по X
-     * @param layoutY  позиція по Y
-     * @param opacity  прозорість
-     * @return обʼєкт кола з ефектом розмиття
-     */
     private Circle createBlurredCircle(double radius, Color color, double layoutX, double layoutY, double opacity) {
         Circle circle = new Circle(radius, color);
         circle.setOpacity(opacity);
@@ -163,12 +176,6 @@ public class AuthWindow {
         return circle;
     }
 
-    /**
-     * Застосовує стиль до кнопки вкладки ("Login" або "Register") в залежності від активності.
-     *
-     * @param button кнопка, до якої застосовується стиль
-     * @param active чи активна кнопка
-     */
     private void styleTabButton(Button button, boolean active) {
         button.setStyle(
                 active

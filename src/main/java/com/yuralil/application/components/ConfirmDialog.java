@@ -1,4 +1,4 @@
-package com.yuralil.components;
+package com.yuralil.application.components;
 
 import javafx.animation.FadeTransition;
 import javafx.geometry.Insets;

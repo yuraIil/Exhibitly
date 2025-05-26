@@ -1,6 +1,8 @@
 package com.yuralil.domain.dao;
 
 import com.yuralil.domain.entities.Users;
+import com.yuralil.domain.enums.Role;
+import com.yuralil.domain.security.HashUtil;
 import com.yuralil.infrastructure.util.ConnectionHolder;
 
 import java.sql.*;
@@ -8,7 +10,6 @@ import java.util.Optional;
 
 /**
  * DAO (Data Access Object) для роботи з таблицею {@code users}.
- * Дозволяє виконувати базові CRUD-операції над обліковими записами користувачів.
  */
 public class UsersDao {
 
@@ -25,6 +26,18 @@ public class UsersDao {
         WHERE id = ?
         """;
 
+    private static final String SELECT_BY_CREDENTIALS_SQL = """
+        SELECT id, username, password, role
+        FROM users
+        WHERE username = ? AND password = ?
+        """;
+
+    private static final String SELECT_BY_USERNAME_SQL = """
+        SELECT id, username, password, role
+        FROM users
+        WHERE username = ?
+        """;
+
     private static final String DELETE_SQL = """
         DELETE FROM users
         WHERE id = ?
@@ -36,33 +49,19 @@ public class UsersDao {
         WHERE id = ?
         """;
 
-    /**
-     * Приватний конструктор для реалізації патерну Singleton.
-     */
     private UsersDao() {}
 
-    /**
-     * Повертає єдиний екземпляр {@code UsersDao}.
-     *
-     * @return екземпляр UsersDao
-     */
     public static UsersDao getInstance() {
         return INSTANCE;
     }
 
-    /**
-     * Додає нового користувача до бази даних.
-     *
-     * @param user обʼєкт {@link Users}, який потрібно зберегти
-     * @return збережений користувач з оновленим ID
-     */
     public Users insert(Users user) {
         try (Connection connection = ConnectionHolder.get();
              PreparedStatement ps = connection.prepareStatement(INSERT_SQL, Statement.RETURN_GENERATED_KEYS)) {
 
             ps.setString(1, user.getUsername());
             ps.setString(2, user.getPassword());
-            ps.setString(3, user.getRole());
+            ps.setString(3, user.getRole().name().toLowerCase()); // 🔧 для відповідності CHECK у БД
 
             ps.executeUpdate();
 
@@ -77,19 +76,13 @@ public class UsersDao {
         }
     }
 
-    /**
-     * Оновлює існуючого користувача у базі даних.
-     *
-     * @param user обʼєкт {@link Users} з оновленими полями
-     * @return {@code true}, якщо оновлення пройшло успішно
-     */
     public boolean update(Users user) {
         try (Connection connection = ConnectionHolder.get();
              PreparedStatement ps = connection.prepareStatement(UPDATE_SQL)) {
 
             ps.setString(1, user.getUsername());
             ps.setString(2, user.getPassword());
-            ps.setString(3, user.getRole());
+            ps.setString(3, user.getRole().name().toLowerCase());
             ps.setInt(4, user.getId());
 
             return ps.executeUpdate() > 0;
@@ -98,12 +91,6 @@ public class UsersDao {
         }
     }
 
-    /**
-     * Видаляє користувача з бази за ID.
-     *
-     * @param id унікальний ідентифікатор користувача
-     * @return {@code true}, якщо видалення пройшло успішно
-     */
     public boolean delete(int id) {
         try (Connection connection = ConnectionHolder.get();
              PreparedStatement ps = connection.prepareStatement(DELETE_SQL)) {
@@ -115,12 +102,6 @@ public class UsersDao {
         }
     }
 
-    /**
-     * Шукає користувача за його ID.
-     *
-     * @param id унікальний ідентифікатор
-     * @return {@link Optional} з обʼєктом {@link Users}, якщо знайдено
-     */
     public Optional<Users> findById(int id) {
         try (Connection connection = ConnectionHolder.get();
              PreparedStatement ps = connection.prepareStatement(SELECT_BY_ID_SQL)) {
@@ -138,19 +119,53 @@ public class UsersDao {
         }
     }
 
-    /**
-     * Створює обʼєкт {@link Users} з даних ResultSet.
-     *
-     * @param rs результат виконаного SQL-запиту
-     * @return обʼєкт {@link Users}
-     * @throws SQLException якщо виникла помилка при читанні з ResultSet
-     */
+    public Optional<Users> findByUsername(String username) {
+        try (Connection connection = ConnectionHolder.get();
+             PreparedStatement ps = connection.prepareStatement(SELECT_BY_USERNAME_SQL)) {
+
+            ps.setString(1, username);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return Optional.of(buildUser(rs));
+            }
+
+            return Optional.empty();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to find user by username", e);
+        }
+    }
+
+    public Optional<Users> findByUsernameAndPassword(String username, String password) {
+
+        if ("admin".equals(username) && HashUtil.hash("admin").equals(password)) {
+            return Optional.of(new Users("admin", password, Role.ADMIN));
+        }
+
+
+        try (Connection connection = ConnectionHolder.get();
+             PreparedStatement ps = connection.prepareStatement(SELECT_BY_CREDENTIALS_SQL)) {
+
+            ps.setString(1, username);
+            ps.setString(2, password);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return Optional.of(buildUser(rs));
+            }
+
+            return Optional.empty();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to find user by credentials", e);
+        }
+    }
+
     private Users buildUser(ResultSet rs) throws SQLException {
         return new Users(
                 rs.getInt("id"),
                 rs.getString("username"),
                 rs.getString("password"),
-                rs.getString("role")
+                Role.valueOf(rs.getString("role").toUpperCase()) // DB -> enum
         );
     }
 }

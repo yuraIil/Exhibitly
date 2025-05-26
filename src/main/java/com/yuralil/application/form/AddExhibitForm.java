@@ -1,5 +1,6 @@
 package com.yuralil.application.form;
 
+import com.yuralil.application.components.ConfirmDialog;
 import com.yuralil.domain.dao.CategoryDao;
 import com.yuralil.domain.dao.ExhibitDao;
 import com.yuralil.domain.dao.MultimediaDao;
@@ -25,12 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.sql.Connection;
-import java.time.LocalDate;
 
-/**
- * A form for adding a new exhibit, including fields for name, category, date,
- * description, and photo selection. Saves data to the database and displays the image.
- */
 public class AddExhibitForm extends VBox {
 
     private final TextField nameField = new TextField();
@@ -41,13 +37,6 @@ public class AddExhibitForm extends VBox {
     private final ImageView previewImage = new ImageView();
     private File selectedPhotoFile;
 
-    /**
-     * Constructs the AddExhibitForm UI and sets up all input fields and event handlers.
-     *
-     * @param ownerStage the parent window stage
-     * @param dialog     the dialog stage that contains the form
-     * @param listView   the ExhibitListView to refresh after adding a new exhibit
-     */
     public AddExhibitForm(Stage ownerStage, Stage dialog, ExhibitListView listView) {
         setSpacing(10);
         setPadding(new Insets(20));
@@ -62,7 +51,7 @@ public class AddExhibitForm extends VBox {
         Label title = new Label("Add New Exhibit");
         title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
 
-        Button closeBtn = new Button("✖");
+        Button closeBtn = new Button("\u2716");
         closeBtn.setStyle("""
             -fx-background-color: transparent;
             -fx-text-fill: #444;
@@ -127,7 +116,7 @@ public class AddExhibitForm extends VBox {
                     descriptionArea.getText().isBlank() ||
                     selectedPhotoFile == null) {
 
-                com.yuralil.components.ConfirmDialog.showWarning("Please fill in all fields and select a photo.", getScene().getWindow());
+                ConfirmDialog.showWarning("Please fill in all fields and select a photo.", getScene().getWindow());
                 return;
             }
 
@@ -153,12 +142,18 @@ public class AddExhibitForm extends VBox {
                 exhibit.setDescription(descriptionArea.getText());
                 exhibit.setAcquisitionDate(acquisitionDate.getValue());
                 exhibit.setMultimedia(multimedia);
-
                 ExhibitDao.getInstance().insert(exhibit);
+
+                multimedia.setExhibit(exhibit);
+                MultimediaDao.getInstance().update(multimedia);
+
                 listView.loadExhibitsFromDb();
                 dialog.close();
+
             } catch (IOException ex) {
                 new Alert(Alert.AlertType.ERROR, "Failed to save image: " + ex.getMessage()).showAndWait();
+            } catch (Exception ex) {
+                new Alert(Alert.AlertType.ERROR, "Failed to save exhibit: " + ex.getMessage()).showAndWait();
             } finally {
                 ConnectionHolder.clear();
             }
@@ -177,12 +172,6 @@ public class AddExhibitForm extends VBox {
         );
     }
 
-    /**
-     * Displays the add exhibit form in a modal dialog with fade-in animation.
-     *
-     * @param parentStage the parent window stage
-     * @param listView    the ExhibitListView to refresh after adding
-     */
     public static void showForm(Stage parentStage, ExhibitListView listView) {
         Stage dialog = new Stage();
         dialog.initOwner(parentStage);
