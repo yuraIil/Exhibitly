@@ -1,53 +1,132 @@
 package com.yuralil.domain.entities;
 
-import com.yuralil.domain.enums.Role;
-
 /**
  * Представляє користувача системи.
+ * Містить інформацію про логін, пароль та роль (наприклад: visitor, scientific_staff, administrator).
  */
 public class Users {
     private int id;
     private String username;
     private String password;
-    private Role role;
+    private String role;
 
-    public Users() {}
+    /**
+     * Порожній конструктор.
+     */
+    public Users() {
+    }
 
-    public Users(int id, String username, String password, Role role) {
+    /**
+     * Повний конструктор з ID.
+     *
+     * @param id       ідентифікатор користувача
+     * @param username логін користувача
+     * @param password пароль користувача
+     * @param role     роль користувача в системі
+     */
+    public Users(int id, String username, String password, String role) {
         this.id = id;
         this.username = username;
         this.password = password;
         this.role = role;
     }
 
-    public Users(String username, String password, Role role) {
+    /**
+     * Конструктор без ID (наприклад, для створення нового користувача).
+     *
+     * @param username логін користувача
+     * @param password пароль користувача
+     * @param role     роль користувача
+     */
+    public Users(String username, String password, String role) {
         this.username = username;
         this.password = password;
         this.role = role;
     }
 
-    public int getId() { return id; }
+    /**
+     * Повертає ID користувача.
+     *
+     * @return ідентифікатор
+     */
+    public int getId() {
+        return id;
+    }
 
-    public void setId(int id) { this.id = id; }
+    /**
+     * Встановлює ID користувача.
+     *
+     * @param id новий ID
+     */
+    public void setId(int id) {
+        this.id = id;
+    }
 
-    public String getUsername() { return username; }
+    /**
+     * Повертає логін користувача.
+     *
+     * @return імʼя користувача
+     */
+    public String getUsername() {
+        return username;
+    }
 
-    public void setUsername(String username) { this.username = username; }
+    /**
+     * Встановлює логін користувача.
+     *
+     * @param username новий логін
+     */
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
-    public String getPassword() { return password; }
+    /**
+     * Повертає пароль користувача.
+     *
+     * @return пароль
+     */
+    public String getPassword() {
+        return password;
+    }
 
-    public void setPassword(String password) { this.password = password; }
+    /**
+     * Встановлює пароль користувача.
+     *
+     * @param password новий пароль
+     */
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
-    public Role getRole() { return role; }
+    /**
+     * Повертає роль користувача (visitor, scientific_staff, administrator тощо).
+     *
+     * @return роль користувача
+     */
+    public String getRole() {
+        return role;
+    }
 
-    public void setRole(Role role) { this.role = role; }
+    /**
+     * Встановлює роль користувача.
+     *
+     * @param role нова роль
+     */
+    public void setRole(String role) {
+        this.role = role;
+    }
 
+    /**
+     * Повертає текстове представлення користувача (без пароля).
+     *
+     * @return рядок з ID, логіном і роллю
+     */
     @Override
     public String toString() {
         return "Users{" +
                 "id=" + id +
                 ", username='" + username + '\'' +
-                ", role=" + role +
+                ", role='" + role + '\'' +
                 '}';
     }
 }

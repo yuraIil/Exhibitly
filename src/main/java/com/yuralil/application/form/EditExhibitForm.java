@@ -148,19 +148,32 @@ public class EditExhibitForm extends VBox {
                 Connection conn = new com.yuralil.infrastructure.util.ConnectionPool().getConnection();
                 ConnectionHolder.set(conn);
 
+                // Оновлюємо медіа, якщо було вибрано нове фото
                 if (selectedPhotoFile != null) {
                     Path imagesDir = Path.of("storage/images");
                     if (!Files.exists(imagesDir)) Files.createDirectories(imagesDir);
                     Path destPath = imagesDir.resolve(selectedPhotoFile.getName());
                     Files.copy(selectedPhotoFile.toPath(), destPath, StandardCopyOption.REPLACE_EXISTING);
 
-                    Multimedia newMedia = new Multimedia();
-                    newMedia.setType("image");
-                    newMedia.setFilePath(selectedPhotoFile.getName());
-                    MultimediaDao.getInstance().update(newMedia);
-                    exhibit.setMultimedia(newMedia);
+                    MultimediaDao multimediaDao = MultimediaDao.getInstance();
+                    Multimedia media = exhibit.getMultimedia();
+
+                    if (media == null) {
+                        media = new Multimedia();
+                        media.setType("image");
+                        media.setFilePath(selectedPhotoFile.getName());
+                        media.setExhibit(exhibit); // Встановлюємо exhibit
+                        multimediaDao.insert(media);
+                        exhibit.setMultimedia(media); // Прив'язуємо до експоната
+                    } else {
+                        media.setType("image");
+                        media.setFilePath(selectedPhotoFile.getName());
+                        media.setExhibit(exhibit); // Встановлюємо exhibit
+                        multimediaDao.update(media);
+                    }
                 }
 
+                // Оновлюємо дані експоната
                 exhibit.setName(nameField.getText());
                 exhibit.setCategory(categoryComboBox.getValue());
                 exhibit.setDescription(descriptionArea.getText());
@@ -178,6 +191,7 @@ public class EditExhibitForm extends VBox {
                 ConnectionHolder.clear();
             }
         });
+
 
         VBox.setMargin(saveButton, new Insets(20, 0, 0, 0));
 

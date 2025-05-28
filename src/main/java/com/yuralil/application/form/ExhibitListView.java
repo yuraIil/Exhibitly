@@ -63,7 +63,8 @@ public class ExhibitListView extends VBox {
 
         ImageView imageView = new ImageView();
         try {
-            File file = new File("src/main/resources/images/" + exhibit.getMultimedia().getFilePath());
+            File file = new File("storage/images/" + exhibit.getMultimedia().getFilePath());
+
 
             if (file.exists()) {
                 imageView.setImage(new Image(file.toURI().toString()));

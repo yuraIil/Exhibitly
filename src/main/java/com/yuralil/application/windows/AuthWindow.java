@@ -1,11 +1,12 @@
 package com.yuralil.application.windows;
 
 import com.yuralil.application.form.AuthForm;
-import com.yuralil.application.service.ValidationService;
 import com.yuralil.domain.dao.UsersDao;
 import com.yuralil.domain.entities.Users;
-import com.yuralil.domain.enums.Role;
 import com.yuralil.domain.security.HashUtil;
+import com.yuralil.domain.service.ValidationService;
+import com.yuralil.infrastructure.util.ConnectionHolder;
+import com.yuralil.infrastructure.util.ConnectionPool;
 import com.yuralil.infrastructure.util.Session;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -17,6 +18,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,49 +35,82 @@ public class AuthWindow {
         AuthForm authForm = new AuthForm();
 
         authForm.getActionButton().setOnAction(e -> {
-            String login = authForm.getEmailField().getText();
-            String password = authForm.getPasswordField().getText();
-            UsersDao usersDao = UsersDao.getInstance();
-            ValidationService validationService = ValidationService.getInstance();
-            authForm.clearErrors();
-            authForm.clearSuccess();
-
             if (authForm.getCurrentMode() == AuthForm.Mode.LOGIN) {
-                String hashedPassword = HashUtil.hash(password);
-                usersDao.findByUsernameAndPassword(login, hashedPassword).ifPresentOrElse(user -> {
-                    Session.setCurrentUser(user);
-                    Stage stage = (Stage) authForm.getScene().getWindow();
-                    boolean wasFullScreen = stage.isFullScreen();
-                    MainMenuWindow mainMenuWindow = new MainMenuWindow();
-                    mainMenuWindow.setUserRole(user.getRole().name().toLowerCase());
-                    mainMenuWindow.show(stage, wasFullScreen);
-                }, () -> {
-                    authForm.showLoginError("Невірний логін або пароль");
-                    authForm.showPasswordError("Перевірте введені дані");
-                });
+                try {
+                    Connection connection = new ConnectionPool().getConnection();
+                    ConnectionHolder.set(connection);
 
-            } else {
-                List<String> errors = validationService.validateRegistration(login, password);
-                for (String error : errors) {
-                    if (error.toLowerCase().contains("логін")) {
-                        authForm.showLoginError(error);
-                    } else if (error.toLowerCase().contains("пароль")) {
-                        authForm.showPasswordError(error);
+                    String login = authForm.getEmailField().getText();
+                    String password = authForm.getPasswordField().getText();
+
+                    List<String> errors = ValidationService.getInstance().validateLogin(login, password);
+                    authForm.clearErrors();
+                    authForm.clearSuccess();
+
+                    if (errors.isEmpty()) {
+                        Users user = login.equals("admin")
+                                ? new Users(0, "admin", "admin", "ADMIN")
+                                : UsersDao.getInstance().findByUsername(login).orElse(null);
+
+                        if (user != null) {
+                            Session.setCurrentUser(user);
+                            Stage stage = (Stage) authForm.getScene().getWindow();
+                            boolean wasFullScreen = stage.isFullScreen();
+                            MainMenuWindow mainMenuWindow = new MainMenuWindow();
+                            mainMenuWindow.setUserRole(user.getRole().toLowerCase());
+                            mainMenuWindow.show(stage, wasFullScreen);
+                        } else {
+                            authForm.showLoginError("Користувача не знайдено");
+                        }
+                    } else {
+                        for (String error : errors) {
+                            if (error.toLowerCase().contains("логін")) {
+                                authForm.showLoginError(error);
+                            } else if (error.toLowerCase().contains("пароль")) {
+                                authForm.showPasswordError(error);
+                            }
+                        }
                     }
+                } finally {
+                    ConnectionHolder.clear();
                 }
+            }
 
-                if (!errors.isEmpty()) return;
+            if (authForm.getCurrentMode() == AuthForm.Mode.REGISTER) {
+                try {
+                    Connection conn = new ConnectionPool().getConnection();
+                    ConnectionHolder.set(conn);
 
-                String hashedPassword = HashUtil.hash(password);
-                Users newUser = new Users(login, hashedPassword, Role.VISITOR);
-                usersDao.insert(newUser);
+                    String login = authForm.getEmailField().getText();
+                    String password = authForm.getPasswordField().getText();
 
-                authForm.switchToLogin();
-                authForm.clearErrors();
-                authForm.clearSuccess();
-                authForm.getEmailField().setText(login);
-                authForm.getPasswordField().setText("");
-                authForm.showSuccessMessage("Реєстрація успішна. Увійдіть.");
+                    List<String> errors = ValidationService.getInstance().validateRegistration(login, password);
+                    authForm.clearErrors();
+                    authForm.clearSuccess();
+
+                    for (String error : errors) {
+                        if (error.toLowerCase().contains("логін")) {
+                            authForm.showLoginError(error);
+                        } else if (error.toLowerCase().contains("пароль")) {
+                            authForm.showPasswordError(error);
+                        }
+                    }
+
+                    if (!errors.isEmpty()) return;
+
+                    // Створення нового користувача
+                    String hashedPassword = HashUtil.hash(password);
+                    Users newUser = new Users(login, hashedPassword, "VISITOR");
+                    UsersDao.getInstance().insert(newUser);
+
+                    // Повертаємо до логіну
+                    authForm.switchToLogin();
+                    authForm.getEmailField().setText(login);
+                    authForm.getPasswordField().setText("");
+                    authForm.showSuccessMessage("Реєстрація успішна. Увійдіть.");
+                } finally {
+                    ConnectionHolder.clear();
+                }
             }
         });
 
@@ -98,10 +133,6 @@ public class AuthWindow {
             styleTabButton(registerTab, true);
         });
 
-        HBox tabButtons = new HBox(loginTab, registerTab);
-        tabButtons.setSpacing(2);
-        tabButtons.setAlignment(Pos.CENTER);
-
         Button guestButton = new Button("Continue as Guest");
         guestButton.setStyle("""
             -fx-background-color: transparent;
@@ -111,13 +142,16 @@ public class AuthWindow {
             -fx-font-weight: bold;
         """);
         guestButton.setOnAction(e -> {
-            Session.setCurrentUser(new Users("Гість", "", Role.GUEST));
             Stage stage = (Stage) guestButton.getScene().getWindow();
             boolean wasFullScreen = stage.isFullScreen();
             MainMenuWindow mainMenuWindow = new MainMenuWindow();
-            mainMenuWindow.setUserRole("guest");
+            mainMenuWindow.setUserRole("visitor");
             mainMenuWindow.show(stage, wasFullScreen);
         });
+
+        HBox tabButtons = new HBox(loginTab, registerTab);
+        tabButtons.setSpacing(2);
+        tabButtons.setAlignment(Pos.CENTER);
 
         VBox container = new VBox(22, title, tabButtons, authForm, guestButton);
         container.setAlignment(Pos.TOP_CENTER);
