@@ -1,14 +1,13 @@
 package com.yuralil.application.windows;
 
-import com.yuralil.application.form.CollectionCatalogForm;
-import com.yuralil.application.form.ExhibitManagerForm;
-import com.yuralil.application.form.FavoriteForm;
+import com.yuralil.application.form.*;
 import com.yuralil.infrastructure.util.Session;
 import com.yuralil.infrastructure.util.SessionStorage;
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import com.yuralil.application.form.ReportGeneratorForm;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.effect.BoxBlur;
@@ -63,11 +62,16 @@ public class MainMenuWindow {
         topBar.setPadding(new Insets(10, 20, 0, 0));
 
         Map<String, Label> menuItems = new LinkedHashMap<>();
-        if (!"visitor".equals(userRole)) {
+        if (!"visitor".equalsIgnoreCase(userRole)) {
             menuItems.put("Exhibit Manager", new Label("\uD83C\uDFDB Exhibit Manager"));
         }
         menuItems.put("Collection Catalog", new Label("\uD83D\uDCDA Collection Catalog"));
         menuItems.put("Favorites", new Label("\u2764 Favorites"));
+
+        if ("ADMIN".equalsIgnoreCase(userRole)) {
+            menuItems.put("Reports", new Label("📝 Reports"));
+        }
+
         menuItems.put("Settings", new Label("\u2699 Settings"));
 
         VBox menu = new VBox(10);
@@ -123,7 +127,7 @@ public class MainMenuWindow {
         stage.setMinHeight(600);
         stage.setScene(scene);
 
-        if (!"visitor".equals(userRole)) {
+        if (!"visitor".equalsIgnoreCase(userRole)) {
             setActiveItem(menuItems.get("Exhibit Manager"));
         } else {
             setActiveItem(menuItems.get("Collection Catalog"));
@@ -142,6 +146,8 @@ public class MainMenuWindow {
             case "\uD83C\uDFDB Exhibit Manager" -> new ExhibitManagerForm();
             case "\uD83D\uDCDA Collection Catalog" -> new CollectionCatalogForm();
             case "\u2764 Favorites" -> new FavoriteForm();
+            case "📝 Reports" -> new ReportGeneratorForm();
+            case "\u2699 Settings" -> new SettingsForm();
             default -> new VBox(new Label("Coming soon..."));
         };
 

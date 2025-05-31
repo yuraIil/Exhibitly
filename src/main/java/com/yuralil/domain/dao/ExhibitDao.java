@@ -6,9 +6,8 @@ import com.yuralil.domain.entities.Multimedia;
 import com.yuralil.infrastructure.util.ConnectionHolder;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.sql.Date;
+import java.util.*;
 
 /**
  * DAO (Data Access Object) для роботи з таблицею {@code exhibit}.
@@ -132,6 +131,32 @@ public class ExhibitDao {
         }
         return exhibits;
     }
+    public Map<String, Integer> countByCategory() {
+        String sql = """
+        SELECT c.name AS category_name, COUNT(e.id) AS exhibit_count
+        FROM category c
+        LEFT JOIN exhibit e ON c.id = e.category_id
+        GROUP BY c.name
+        """;
+
+        Map<String, Integer> result = new LinkedHashMap<>();
+        try (Connection conn = ConnectionHolder.get();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                String category = rs.getString("category_name");
+                int count = rs.getInt("exhibit_count");
+                result.put(category, count);
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Помилка при підрахунку експонатів по категоріях", e);
+        }
+
+        return result;
+    }
+
 
     /**
      * Оновлює наявний експонат у базі.
