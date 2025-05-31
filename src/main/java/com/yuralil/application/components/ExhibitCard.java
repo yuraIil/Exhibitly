@@ -1,9 +1,12 @@
 package com.yuralil.application.components;
 
+import com.yuralil.domain.dao.FavoriteDao;
 import com.yuralil.domain.entities.Exhibit;
+import com.yuralil.infrastructure.util.Session;
 import javafx.animation.ScaleTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -13,13 +16,13 @@ import javafx.stage.Window;
 import javafx.util.Duration;
 
 import java.io.File;
+import java.sql.Connection;
 
-/**
- * Картка для відображення експоната у стилі галереї.
- */
 public class ExhibitCard extends StackPane {
 
-    public ExhibitCard(Exhibit exhibit) {
+    private final FavoriteDao favoriteDao = new FavoriteDao();
+
+    public ExhibitCard(Exhibit exhibit, Connection conn) {
         setPrefWidth(220);
         setMaxWidth(220);
 
@@ -41,10 +44,28 @@ public class ExhibitCard extends StackPane {
         Label category = new Label(exhibit.getCategory().getName());
         category.setStyle("-fx-text-fill: #555; -fx-font-size: 11px;");
 
-        Label date = new Label("📅 " + exhibit.getAcquisitionDate().toString());
+        Label date = new Label("\uD83D\uDCC5 " + exhibit.getAcquisitionDate().toString());
         date.setStyle("-fx-text-fill: #777; -fx-font-size: 10px;");
 
-        VBox info = new VBox(2, title, category, date);
+        // Кнопка обране
+        Button favButton = new Button();
+        favButton.setStyle("-fx-background-color: transparent; -fx-font-size: 12px; -fx-cursor: hand;");
+
+        int userId = Session.getCurrentUser().getId();
+        boolean[] isFav = {favoriteDao.exists(conn, userId, exhibit.getId())};
+        updateFavButton(favButton, isFav[0]);
+
+        favButton.setOnAction(e -> {
+            if (isFav[0]) {
+                favoriteDao.remove(conn, userId, exhibit.getId());
+            } else {
+                favoriteDao.add(conn, userId, exhibit.getId());
+            }
+            isFav[0] = !isFav[0];
+            updateFavButton(favButton, isFav[0]);
+        });
+
+        VBox info = new VBox(2, title, category, date, favButton);
         info.setPadding(new Insets(5));
         info.setAlignment(Pos.TOP_LEFT);
 
@@ -80,5 +101,9 @@ public class ExhibitCard extends StackPane {
 
         getChildren().add(content);
         setPadding(new Insets(5));
+    }
+
+    private void updateFavButton(Button button, boolean isFavorite) {
+        button.setText(isFavorite ? "✅ У вибраному" : "❤ Додати в обране");
     }
 }

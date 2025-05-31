@@ -8,6 +8,7 @@ import com.yuralil.infrastructure.util.AppInitializer;
 import com.yuralil.infrastructure.util.Session;
 import com.yuralil.infrastructure.util.SessionStorage;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.stage.Stage;
 
 /**
@@ -28,6 +29,8 @@ public class ExhibitlyMain extends Application {
                 Session.setCurrentUser(user);
                 MainMenuWindow mainMenu = new MainMenuWindow();
                 mainMenu.setUserRole(user.getRole().toLowerCase());
+                mainMenu.show(primaryStage, false);
+                Platform.runLater(() -> primaryStage.setFullScreen(true));
 
                 // ✅ Встановлюємо fullscreen ПЕРЕД показом
                 primaryStage.setFullScreen(true);

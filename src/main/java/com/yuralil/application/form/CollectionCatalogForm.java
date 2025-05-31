@@ -27,6 +27,7 @@ public class CollectionCatalogForm extends VBox {
     private final ComboBox<String> categoryFilter;
     private final TextField searchField;
     private final List<Exhibit> allExhibits = new ArrayList<>();
+    private Connection conn;
 
     public CollectionCatalogForm() {
         setSpacing(16);
@@ -54,21 +55,14 @@ public class CollectionCatalogForm extends VBox {
         tilePane.setHgap(20);
         tilePane.setVgap(20);
         tilePane.setPadding(new Insets(10));
-        tilePane.setPrefTileWidth(240); // ширина картки
+        tilePane.setPrefTileWidth(240);
         tilePane.setTileAlignment(Pos.TOP_LEFT);
         tilePane.setPrefColumns(5);
-
         tilePane.setMaxWidth(Double.MAX_VALUE);
-        tilePane.setPrefWidth(Region.USE_COMPUTED_SIZE);
-        tilePane.setPrefHeight(Region.USE_COMPUTED_SIZE);
-        tilePane.setMinHeight(Region.USE_COMPUTED_SIZE);
 
         ScrollPane scroll = new ScrollPane(tilePane);
         scroll.setFitToWidth(true);
-        scroll.setFitToHeight(true);
-        scroll.setMaxHeight(Double.MAX_VALUE);
         scroll.setStyle("-fx-background-color: transparent;");
-        scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         VBox.setVgrow(scroll, Priority.ALWAYS);
 
         getChildren().addAll(title, filterBox, scroll);
@@ -81,8 +75,10 @@ public class CollectionCatalogForm extends VBox {
         categoryFilter.getItems().clear();
         tilePane.getChildren().clear();
 
-        try (Connection conn = new ConnectionPool().getConnection()) {
+        try {
+            conn = new ConnectionPool().getConnection();
             ConnectionHolder.set(conn);
+
             List<Exhibit> exhibits = ExhibitDao.getInstance().findAll();
             allExhibits.addAll(exhibits);
 
@@ -99,12 +95,12 @@ public class CollectionCatalogForm extends VBox {
         } catch (Exception e) {
             tilePane.getChildren().add(new Text("❌ Помилка завантаження експонатів."));
             e.printStackTrace();
-        } finally {
-            ConnectionHolder.clear();
         }
     }
 
     private void updateFilter() {
+        if (conn == null) return;
+
         String keyword = searchField.getText().toLowerCase();
         String selectedCategory = categoryFilter.getValue();
 
@@ -116,7 +112,7 @@ public class CollectionCatalogForm extends VBox {
                     exhibit.getCategory().getName().equals(selectedCategory);
 
             if (matchesSearch && matchesCategory) {
-                tilePane.getChildren().add(new ExhibitCard(exhibit));
+                tilePane.getChildren().add(new ExhibitCard(exhibit, conn));
             }
         }
     }

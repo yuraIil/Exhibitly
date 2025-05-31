@@ -52,7 +52,7 @@ public class AuthWindow {
                         Users user = UsersDao.getInstance().findByUsername(login).orElse(null);
                         if (user != null && user.getPassword().equals(HashUtil.hash(password))) {
                             Session.setCurrentUser(user);
-                            SessionStorage.saveUsername(user.getUsername()); // ✅ зберігаємо активну сесію
+                            SessionStorage.saveUsername(user.getUsername());
                             Stage stage = (Stage) authForm.getScene().getWindow();
                             boolean wasFullScreen = stage.isFullScreen();
                             MainMenuWindow mainMenuWindow = new MainMenuWindow();
@@ -97,12 +97,10 @@ public class AuthWindow {
 
                     if (!errors.isEmpty()) return;
 
-                    // Створення нового користувача
                     String hashedPassword = HashUtil.hash(password);
                     Users newUser = new Users(login, hashedPassword, "VISITOR");
                     UsersDao.getInstance().insert(newUser);
 
-                    // Повертаємо до логіну
                     authForm.switchToLogin();
                     authForm.getEmailField().setText(login);
                     authForm.getPasswordField().setText("");
@@ -178,6 +176,7 @@ public class AuthWindow {
     public void show(Stage stage) {
         Scene scene = new Scene(getRoot(), stage.getWidth(), stage.getHeight());
         stage.setScene(scene);
+        stage.setFullScreen(true); // ✅ повноекранний режим при відкритті
     }
 
     private Pane createBackgroundCircles(double width, double height) {

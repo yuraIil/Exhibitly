@@ -27,26 +27,24 @@ public class ExhibitDetailsDialog {
         dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.initStyle(StageStyle.TRANSPARENT);
 
-        VBox container = new VBox(10);
-        container.setPadding(new Insets(20));
-        container.setAlignment(Pos.CENTER);
-        container.setStyle("""
-            -fx-background-color: white;
-            -fx-background-radius: 16;
-            -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 4);
-        """);
-
-        Button closeButton = new Button("\u2716");
+        // Close button
+        Button closeButton = new Button("✖");
         closeButton.setStyle("""
             -fx-background-color: transparent;
             -fx-font-size: 14px;
-            -fx-text-fill: #666;
+            -fx-text-fill: #333;
         """);
         closeButton.setOnAction(e -> dialog.close());
 
+        HBox closeBar = new HBox(closeButton);
+        closeBar.setAlignment(Pos.TOP_RIGHT);
+        closeBar.setPadding(new Insets(5, 5, 0, 0));
+
+        // Image
         ImageView imageView = new ImageView();
-        imageView.setFitWidth(300);
+        imageView.setFitWidth(200);
         imageView.setPreserveRatio(true);
+        imageView.setSmooth(true);
 
         if (exhibit.getMultimedia() != null && exhibit.getMultimedia().getFilePath() != null) {
             File file = Path.of("storage/images", exhibit.getMultimedia().getFilePath()).toFile();
@@ -55,6 +53,7 @@ public class ExhibitDetailsDialog {
             }
         }
 
+        // Details
         Label name = new Label(exhibit.getName());
         name.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
 
@@ -64,24 +63,37 @@ public class ExhibitDetailsDialog {
         description.setWrapText(true);
 
         VBox details = new VBox(6, name, category, date, description);
-        details.setAlignment(Pos.CENTER_LEFT);
+        details.setAlignment(Pos.TOP_LEFT);
+        details.setPadding(new Insets(10));
 
-        HBox topBar = new HBox(new Region(), closeButton);
-        HBox.setHgrow(topBar.getChildren().get(0), Priority.ALWAYS);
+        // Content layout
+        HBox contentBox = new HBox(20, imageView, details);
+        contentBox.setPadding(new Insets(10));
 
-        container.getChildren().addAll(topBar, imageView, details);
+        // White container with border and shadow
+        VBox container = new VBox(10, closeBar, contentBox);
+        container.setStyle("""
+            -fx-background-color: white;
+            -fx-background-radius: 12;
+            -fx-border-radius: 12;
+            -fx-border-color: black;
+            -fx-border-width: 2;
+        """);
+        container.setPadding(new Insets(10));
+        container.setMaxWidth(500);
 
         StackPane root = new StackPane(container);
-        root.setStyle("-fx-background-color: rgba(0,0,0,0.25);");
+        root.setAlignment(Pos.CENTER);
+        root.setStyle("-fx-background-color: rgba(0,0,0,0.3);");
 
-        Scene scene = new Scene(root, 450, 450);
+        Scene scene = new Scene(root);
         scene.setFill(Color.TRANSPARENT);
 
         dialog.setScene(scene);
 
-        ScaleTransition st = new ScaleTransition(Duration.millis(200), container);
-        container.setScaleX(0.8);
-        container.setScaleY(0.8);
+        ScaleTransition st = new ScaleTransition(Duration.millis(250), container);
+        container.setScaleX(0.85);
+        container.setScaleY(0.85);
         st.setToX(1);
         st.setToY(1);
         st.play();

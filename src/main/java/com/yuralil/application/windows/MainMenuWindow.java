@@ -2,11 +2,14 @@ package com.yuralil.application.windows;
 
 import com.yuralil.application.form.CollectionCatalogForm;
 import com.yuralil.application.form.ExhibitManagerForm;
+import com.yuralil.application.form.FavoriteForm;
 import com.yuralil.infrastructure.util.Session;
+import com.yuralil.infrastructure.util.SessionStorage;
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.input.KeyCode;
@@ -30,7 +33,7 @@ public class MainMenuWindow {
     }
 
     public void show(Stage stage, boolean fullScreen) {
-        stage.setFullScreen(fullScreen); // ✅ активуємо фулскрін раніше
+        stage.setFullScreen(fullScreen);
         double width = stage.getWidth() > 0 ? stage.getWidth() : 1280;
         double height = stage.getHeight() > 0 ? stage.getHeight() : 720;
 
@@ -45,6 +48,19 @@ public class MainMenuWindow {
                 .map(u -> u.getUsername()).orElse("Unknown"));
         sessionLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #555;");
         sessionLabel.setAlignment(Pos.TOP_RIGHT);
+
+        Button backButton = new Button("↩ Log out");
+        backButton.setStyle("-fx-background-color: transparent; -fx-text-fill: #1a3e2b; -fx-underline: true; -fx-font-size: 12px;");
+        backButton.setOnAction(e -> {
+            SessionStorage.clear();
+            Session.clear();
+            AuthWindow authWindow = new AuthWindow();
+            authWindow.show(stage);
+        });
+
+        HBox topBar = new HBox(10, backButton, sessionLabel);
+        topBar.setAlignment(Pos.TOP_RIGHT);
+        topBar.setPadding(new Insets(10, 20, 0, 0));
 
         Map<String, Label> menuItems = new LinkedHashMap<>();
         if (!"visitor".equals(userRole)) {
@@ -78,9 +94,7 @@ public class MainMenuWindow {
         HBox.setHgrow(rightPanel, Priority.ALWAYS);
 
         BorderPane wrapper = new BorderPane(content);
-        wrapper.setTop(sessionLabel);
-        BorderPane.setAlignment(sessionLabel, Pos.TOP_RIGHT);
-        BorderPane.setMargin(sessionLabel, new Insets(10, 20, 0, 0));
+        wrapper.setTop(topBar);
         wrapper.setStyle("-fx-background-color: white; -fx-background-radius: 32;");
         wrapper.setPadding(new Insets(20));
         wrapper.maxWidthProperty().bind(stage.widthProperty().subtract(60));
@@ -127,6 +141,7 @@ public class MainMenuWindow {
         VBox newContent = switch (text) {
             case "\uD83C\uDFDB Exhibit Manager" -> new ExhibitManagerForm();
             case "\uD83D\uDCDA Collection Catalog" -> new CollectionCatalogForm();
+            case "\u2764 Favorites" -> new FavoriteForm();
             default -> new VBox(new Label("Coming soon..."));
         };
 
