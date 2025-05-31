@@ -1,6 +1,7 @@
 package com.yuralil.domain.dao;
 
 import com.yuralil.domain.entities.Users;
+import com.yuralil.domain.security.HashUtil;
 import com.yuralil.infrastructure.util.ConnectionHolder;
 
 import java.sql.*;
@@ -109,11 +110,6 @@ public class UsersDao {
     }
 
     public Optional<Users> findByUsername(String username) {
-        // Захардкоджений обліковий запис адміністратора
-        if ("admin".equals(username)) {
-            return Optional.of(new Users("admin", "admin", "ADMIN"));
-        }
-
         try (Connection connection = ConnectionHolder.get();
              PreparedStatement ps = connection.prepareStatement(SELECT_BY_USERNAME_SQL)) {
 
@@ -127,6 +123,19 @@ public class UsersDao {
             return Optional.empty();
         } catch (SQLException e) {
             throw new RuntimeException("Failed to find user by username", e);
+        }
+    }
+
+    public void initAdmin() {
+        Optional<Users> adminOpt = findByUsername("administrator");
+        if (adminOpt.isEmpty()) {
+            Users admin = new Users();
+            admin.setUsername("administrator");
+            admin.setPassword(HashUtil.hash("admin12345")); // пароль у хеші
+            admin.setRole("ADMIN");
+
+            insert(admin);
+            System.out.println("✅ Адміністратор створений: login=administrator, password=admin12345");
         }
     }
 

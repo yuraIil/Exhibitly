@@ -8,6 +8,7 @@ import com.yuralil.domain.service.ValidationService;
 import com.yuralil.infrastructure.util.ConnectionHolder;
 import com.yuralil.infrastructure.util.ConnectionPool;
 import com.yuralil.infrastructure.util.Session;
+import com.yuralil.infrastructure.util.SessionStorage;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -48,19 +49,17 @@ public class AuthWindow {
                     authForm.clearSuccess();
 
                     if (errors.isEmpty()) {
-                        Users user = login.equals("admin")
-                                ? new Users(0, "admin", "admin", "ADMIN")
-                                : UsersDao.getInstance().findByUsername(login).orElse(null);
-
-                        if (user != null) {
+                        Users user = UsersDao.getInstance().findByUsername(login).orElse(null);
+                        if (user != null && user.getPassword().equals(HashUtil.hash(password))) {
                             Session.setCurrentUser(user);
+                            SessionStorage.saveUsername(user.getUsername()); // ✅ зберігаємо активну сесію
                             Stage stage = (Stage) authForm.getScene().getWindow();
                             boolean wasFullScreen = stage.isFullScreen();
                             MainMenuWindow mainMenuWindow = new MainMenuWindow();
                             mainMenuWindow.setUserRole(user.getRole().toLowerCase());
                             mainMenuWindow.show(stage, wasFullScreen);
                         } else {
-                            authForm.showLoginError("Користувача не знайдено");
+                            authForm.showLoginError("Невірний логін або пароль");
                         }
                     } else {
                         for (String error : errors) {

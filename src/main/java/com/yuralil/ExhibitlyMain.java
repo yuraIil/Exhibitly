@@ -1,47 +1,47 @@
 package com.yuralil;
 
 import com.yuralil.application.windows.IntroWindow;
-import com.yuralil.domain.dao.CategoryDao;
-import com.yuralil.infrastructure.util.ConnectionHolder;
-import com.yuralil.infrastructure.util.ConnectionPool;
+import com.yuralil.application.windows.MainMenuWindow;
+import com.yuralil.domain.dao.UsersDao;
+import com.yuralil.domain.entities.Users;
+import com.yuralil.infrastructure.util.AppInitializer;
+import com.yuralil.infrastructure.util.Session;
+import com.yuralil.infrastructure.util.SessionStorage;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
-import java.sql.Connection;
-
 /**
  * Головний клас запуску JavaFX-застосунку Exhibitly.
- * Відповідає за ініціалізацію підключення до бази даних, дефолтних категорій та запуск стартового екрану.
  */
 public class ExhibitlyMain extends Application {
 
-    /**
-     * Метод, який викликається при запуску JavaFX-застосунку.
-     * Ініціалізує підключення до бази даних, дефолтні категорії та відкриває стартове вікно {@link IntroWindow}.
-     *
-     * @param primaryStage головне вікно JavaFX
-     */
     @Override
     public void start(Stage primaryStage) {
-        try {
-            Connection conn = new ConnectionPool().getConnection();
-            ConnectionHolder.set(conn);
+        AppInitializer.initAll();
 
-            // Ініціалізуємо 10 категорій (якщо їх ще нема)
-            CategoryDao.getInstance().initDefaults();
-        } finally {
-            ConnectionHolder.clear();
+        String savedUsername = SessionStorage.loadUsername();
+        System.out.println("⏳ Saved session: " + savedUsername);
+
+        if (savedUsername != null && !savedUsername.isBlank()) {
+            UsersDao.getInstance().findByUsername(savedUsername).ifPresentOrElse(user -> {
+                System.out.println("✅ Found user from session: " + user.getUsername());
+                Session.setCurrentUser(user);
+                MainMenuWindow mainMenu = new MainMenuWindow();
+                mainMenu.setUserRole(user.getRole().toLowerCase());
+
+                // ✅ Встановлюємо fullscreen ПЕРЕД показом
+                primaryStage.setFullScreen(true);
+                mainMenu.show(primaryStage, true);
+            }, () -> {
+                System.out.println("⚠️ User from session not found in DB. Clearing session.");
+                SessionStorage.clear();
+                new IntroWindow().showIntro(primaryStage);
+            });
+        } else {
+            new IntroWindow().showIntro(primaryStage);
         }
-
-        IntroWindow introWindow = new IntroWindow();
-        introWindow.showIntro(primaryStage);
     }
 
-    /**
-     * Точка входу в застосунок.
-     *
-     * @param args аргументи командного рядка (не використовуються)
-     */
     public static void main(String[] args) {
         launch(args);
     }

@@ -1,12 +1,10 @@
 package com.yuralil.infrastructure.util;
 
 import com.yuralil.domain.dao.CategoryDao;
+import com.yuralil.domain.dao.UsersDao;
 
 import java.sql.Connection;
 
-/**
- * Ініціалізує підключення до БД, структуру та дефолтні дані на старті застосунку.
- */
 public class AppInitializer {
 
     public static void initAll() {
@@ -14,10 +12,7 @@ public class AppInitializer {
         Connection connection = pool.getConnection();
         ConnectionHolder.set(connection); // зберігаємо глобальне з'єднання
 
-        // створення структури БД
-      //  new PersistenceInitializer(pool).initSchema();
-
-        // дефолтні категорії
-        CategoryDao.getInstance().initDefaults();
+        CategoryDao.getInstance().initDefaults();     // дефолтні категорії
+        UsersDao.getInstance().initAdmin();           // ⬅️ тепер створює адміністратора
     }
 }

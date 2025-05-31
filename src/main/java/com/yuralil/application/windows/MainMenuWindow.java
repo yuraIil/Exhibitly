@@ -1,6 +1,8 @@
 package com.yuralil.application.windows;
 
+import com.yuralil.application.form.CollectionCatalogForm;
 import com.yuralil.application.form.ExhibitManagerForm;
+import com.yuralil.infrastructure.util.Session;
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -15,10 +17,6 @@ import javafx.stage.Stage;
 
 import java.util.*;
 
-/**
- * Головне меню застосунку Exhibitly. Включає навігацію між секціями (меню),
- * адаптивне оформлення, фонову графіку та підтримку повноекранного режиму.
- */
 public class MainMenuWindow {
 
     private final String baseStyle = "-fx-font-size: 14px; -fx-text-fill: #1a3e2b;";
@@ -27,35 +25,28 @@ public class MainMenuWindow {
     private VBox rightPanel;
     private String userRole = "user";
 
-    /**
-     * Встановлює роль користувача (наприклад, "user" або "visitor").
-     * Визначає доступні пункти меню.
-     *
-     * @param role рядок із назвою ролі
-     */
     public void setUserRole(String role) {
         this.userRole = role;
     }
 
-    /**
-     * Ініціалізує головне меню та встановлює його у вказане вікно.
-     *
-     * @param stage       вікно, у якому відображається меню
-     * @param fullScreen  чи запускати у повноекранному режимі
-     */
     public void show(Stage stage, boolean fullScreen) {
-        double width = stage.getWidth();
-        double height = stage.getHeight();
+        stage.setFullScreen(fullScreen); // ✅ активуємо фулскрін раніше
+        double width = stage.getWidth() > 0 ? stage.getWidth() : 1280;
+        double height = stage.getHeight() > 0 ? stage.getHeight() : 720;
 
         Label logo = new Label("Exhibitly");
         logo.setStyle("""
-        -fx-font-size: 28px;
-        -fx-font-weight: bold;
-        -fx-text-fill: #1a3e2b;
-    """);
+            -fx-font-size: 28px;
+            -fx-font-weight: bold;
+            -fx-text-fill: #1a3e2b;
+        """);
+
+        Label sessionLabel = new Label("👤 " + Optional.ofNullable(Session.getCurrentUser())
+                .map(u -> u.getUsername()).orElse("Unknown"));
+        sessionLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #555;");
+        sessionLabel.setAlignment(Pos.TOP_RIGHT);
 
         Map<String, Label> menuItems = new LinkedHashMap<>();
-
         if (!"visitor".equals(userRole)) {
             menuItems.put("Exhibit Manager", new Label("\uD83C\uDFDB Exhibit Manager"));
         }
@@ -86,11 +77,13 @@ public class MainMenuWindow {
         content.setPadding(new Insets(30));
         HBox.setHgrow(rightPanel, Priority.ALWAYS);
 
-        VBox wrapper = new VBox(content);
+        BorderPane wrapper = new BorderPane(content);
+        wrapper.setTop(sessionLabel);
+        BorderPane.setAlignment(sessionLabel, Pos.TOP_RIGHT);
+        BorderPane.setMargin(sessionLabel, new Insets(10, 20, 0, 0));
         wrapper.setStyle("-fx-background-color: white; -fx-background-radius: 32;");
         wrapper.setPadding(new Insets(20));
         wrapper.maxWidthProperty().bind(stage.widthProperty().subtract(60));
-        wrapper.setMaxHeight(640);
         wrapper.maxHeightProperty().bind(Bindings.min(stage.heightProperty().subtract(60), 700));
         wrapper.maxWidthProperty().bind(Bindings.min(stage.widthProperty().subtract(60), 1000));
 
@@ -100,37 +93,31 @@ public class MainMenuWindow {
         root.setPrefSize(width, height);
 
         Pane background = createBackgroundCircles(width, height);
-        root.getChildren().addAll(background, wrapper);
+        root.getChildren().add(background);
+        root.getChildren().add(wrapper);
+        StackPane.setAlignment(background, Pos.CENTER);
+        StackPane.setAlignment(wrapper, Pos.CENTER);
 
         Scene scene = new Scene(root, width, height);
         scene.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.F11) {
-                if (stage.isFullScreen()) {
-                    stage.setFullScreen(false);
-                    stage.setWidth(800);
-                    stage.setHeight(600);
-                    stage.centerOnScreen();
-                } else {
-                    stage.setFullScreen(true);
-                }
+                stage.setFullScreen(!stage.isFullScreen());
             }
         });
 
         stage.setMinWidth(800);
         stage.setMinHeight(600);
         stage.setScene(scene);
-        stage.setFullScreen(fullScreen);
 
         if (!"visitor".equals(userRole)) {
             setActiveItem(menuItems.get("Exhibit Manager"));
+        } else {
+            setActiveItem(menuItems.get("Collection Catalog"));
         }
+
+        stage.show();
     }
 
-    /**
-     * Змінює активний пункт меню та завантажує відповідний вміст у праву панель.
-     *
-     * @param selected пункт меню, який було натиснуто
-     */
     private void setActiveItem(Label selected) {
         if (activeItem != null) activeItem.setStyle(baseStyle);
         activeItem = selected;
@@ -139,6 +126,7 @@ public class MainMenuWindow {
         String text = selected.getText();
         VBox newContent = switch (text) {
             case "\uD83C\uDFDB Exhibit Manager" -> new ExhibitManagerForm();
+            case "\uD83D\uDCDA Collection Catalog" -> new CollectionCatalogForm();
             default -> new VBox(new Label("Coming soon..."));
         };
 
@@ -149,24 +137,12 @@ public class MainMenuWindow {
         rightPanel = newContent;
     }
 
-    /**
-     * Застосовує стилі до правої панелі (вмісту).
-     *
-     * @param panel VBox, до якого застосовується стиль
-     */
     private void styleRightPanel(VBox panel) {
         panel.setStyle("-fx-background-color: transparent;");
         panel.setPadding(new Insets(0));
         VBox.setVgrow(panel, Priority.ALWAYS);
     }
 
-    /**
-     * Створює фон з кольорових розмитих кіл.
-     *
-     * @param width  ширина вікна
-     * @param height висота вікна
-     * @return панель із колами
-     */
     private Pane createBackgroundCircles(double width, double height) {
         Pane pane = new Pane();
         pane.setPrefSize(width, height);
@@ -183,16 +159,6 @@ public class MainMenuWindow {
         return pane;
     }
 
-    /**
-     * Створює розмите коло з заданими параметрами.
-     *
-     * @param radius  радіус кола
-     * @param color   колір кола
-     * @param x       координата X
-     * @param y       координата Y
-     * @param opacity прозорість
-     * @return розмите коло
-     */
     private Circle createBlurredCircle(double radius, Color color, double x, double y, double opacity) {
         Circle circle = new Circle(radius, color);
         circle.setOpacity(opacity);

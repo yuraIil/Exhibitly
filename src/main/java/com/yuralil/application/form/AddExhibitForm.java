@@ -124,7 +124,7 @@ public class AddExhibitForm extends VBox {
                 Connection conn = new com.yuralil.infrastructure.util.ConnectionPool().getConnection();
                 ConnectionHolder.set(conn);
 
-                Path imagesDir = Path.of("src/main/resources/images");
+                Path imagesDir = Path.of("storage/images");
                 if (!Files.exists(imagesDir)) Files.createDirectories(imagesDir);
                 Path destPath = imagesDir.resolve(selectedPhotoFile.getName());
                 Files.copy(selectedPhotoFile.toPath(), destPath, StandardCopyOption.REPLACE_EXISTING);
