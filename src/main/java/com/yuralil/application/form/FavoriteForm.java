@@ -1,4 +1,3 @@
-
 package com.yuralil.application.form;
 
 import com.yuralil.application.components.ExhibitCard;
@@ -19,9 +18,6 @@ import javafx.scene.text.Text;
 import java.sql.Connection;
 import java.util.List;
 
-/**
- * Вкладка "Улюблене" — показує улюблені експонати поточного користувача.
- */
 public class FavoriteForm extends VBox {
 
     private final TilePane tilePane;
@@ -57,6 +53,11 @@ public class FavoriteForm extends VBox {
 
     private void loadFavorites() {
         tilePane.getChildren().clear();
+
+        if (Session.getCurrentUser() == null) {
+            tilePane.getChildren().add(new Text("🔒 Увійдіть, щоб переглядати улюблені експонати."));
+            return;
+        }
 
         try (Connection conn = new ConnectionPool().getConnection()) {
             ConnectionHolder.set(conn);

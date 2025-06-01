@@ -18,6 +18,9 @@ import javafx.util.Duration;
 import java.io.File;
 import java.sql.Connection;
 
+/**
+ * Картка для відображення експоната з підтримкою додавання в обране.
+ */
 public class ExhibitCard extends StackPane {
 
     private final FavoriteDao favoriteDao = new FavoriteDao();
@@ -26,7 +29,6 @@ public class ExhibitCard extends StackPane {
         setPrefWidth(220);
         setMaxWidth(220);
 
-        // Фото
         ImageView imageView = new ImageView();
         String imgPath = "storage/images/" + exhibit.getMultimedia().getFilePath();
         File file = new File(imgPath);
@@ -35,9 +37,7 @@ public class ExhibitCard extends StackPane {
         }
         imageView.setFitWidth(220);
         imageView.setFitHeight(130);
-        imageView.setStyle("-fx-background-radius: 12;");
 
-        // Текст
         Label title = new Label(exhibit.getName());
         title.setStyle("-fx-font-weight: bold; -fx-font-size: 13px;");
 
@@ -47,27 +47,31 @@ public class ExhibitCard extends StackPane {
         Label date = new Label("\uD83D\uDCC5 " + exhibit.getAcquisitionDate().toString());
         date.setStyle("-fx-text-fill: #777; -fx-font-size: 10px;");
 
-        // Кнопка обране
-        Button favButton = new Button();
-        favButton.setStyle("-fx-background-color: transparent; -fx-font-size: 12px; -fx-cursor: hand;");
-
-        int userId = Session.getCurrentUser().getId();
-        boolean[] isFav = {favoriteDao.exists(conn, userId, exhibit.getId())};
-        updateFavButton(favButton, isFav[0]);
-
-        favButton.setOnAction(e -> {
-            if (isFav[0]) {
-                favoriteDao.remove(conn, userId, exhibit.getId());
-            } else {
-                favoriteDao.add(conn, userId, exhibit.getId());
-            }
-            isFav[0] = !isFav[0];
-            updateFavButton(favButton, isFav[0]);
-        });
-
-        VBox info = new VBox(2, title, category, date, favButton);
+        VBox info = new VBox(2, title, category, date);
         info.setPadding(new Insets(5));
         info.setAlignment(Pos.TOP_LEFT);
+
+        // Кнопка "в обране" — лише для авторизованих користувачів
+        if (Session.getCurrentUser() != null) {
+            Button favButton = new Button();
+            favButton.setStyle("-fx-background-color: transparent; -fx-font-size: 12px; -fx-cursor: hand;");
+
+            int userId = Session.getCurrentUser().getId();
+            boolean[] isFav = {favoriteDao.exists(conn, userId, exhibit.getId())};
+            updateFavButton(favButton, isFav[0]);
+
+            favButton.setOnAction(e -> {
+                if (isFav[0]) {
+                    favoriteDao.remove(conn, userId, exhibit.getId());
+                } else {
+                    favoriteDao.add(conn, userId, exhibit.getId());
+                }
+                isFav[0] = !isFav[0];
+                updateFavButton(favButton, isFav[0]);
+            });
+
+            info.getChildren().add(favButton);
+        }
 
         VBox content = new VBox(imageView, info);
         content.setStyle("""
@@ -91,7 +95,7 @@ public class ExhibitCard extends StackPane {
             st.playFromStart();
         });
 
-        // Клік — показати діалог з деталями
+        // Клік — показати діалог
         this.setOnMouseClicked(e -> {
             Window window = getScene() != null ? getScene().getWindow() : null;
             if (window instanceof javafx.stage.Stage stage) {

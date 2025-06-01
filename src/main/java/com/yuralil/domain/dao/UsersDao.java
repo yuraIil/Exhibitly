@@ -147,4 +147,16 @@ public class UsersDao {
                 rs.getString("role")
         );
     }
+    public void updatePassword(int userId, String newPassword) {
+        String sql = "UPDATE users SET password = ? WHERE id = ?";
+        try (Connection conn = ConnectionHolder.get();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, newPassword);
+            stmt.setInt(2, userId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Помилка при оновленні пароля", e);
+        }
+    }
+
 }
