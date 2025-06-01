@@ -9,10 +9,16 @@ import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 
 /**
- * Форма налаштувань користувача: зміна пароля, повідомлення для гостей.
+ * Форма налаштувань користувача.
+ * <p>
+ * Якщо користувач не авторизований — показується повідомлення.
+ * Якщо авторизований — відображається секція зміни пароля.
  */
 public class SettingsForm extends VBox {
 
+    /**
+     * Конструктор ініціалізує вміст залежно від статусу користувача.
+     */
     public SettingsForm() {
         setSpacing(20);
         setPadding(new Insets(30));
@@ -27,6 +33,11 @@ public class SettingsForm extends VBox {
         }
     }
 
+    /**
+     * Створює секцію зміни пароля для авторизованого користувача.
+     *
+     * @return VBox із полями, кнопкою та повідомленням статусу
+     */
     private VBox createPasswordSection() {
         VBox box = new VBox(10);
         box.setPadding(new Insets(10));

@@ -8,17 +8,38 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Сервіс для валідації введених даних під час реєстрації та входу.
+ * <p>
+ * Перевіряє:
+ * <ul>
+ *     <li>формат та унікальність логіна</li>
+ *     <li>довжину та відповідність пароля</li>
+ *     <li>наявність користувача в базі</li>
+ *     <li>захардкоджений адмін-аккаунт</li>
+ * </ul>
+ */
 public class ValidationService {
 
     private static final ValidationService INSTANCE = new ValidationService();
     private final UsersDao usersDao = UsersDao.getInstance();
 
+    /**
+     * @return єдиний інстанс {@code ValidationService}
+     */
     public static ValidationService getInstance() {
         return INSTANCE;
     }
 
     private ValidationService() {}
 
+    /**
+     * Перевіряє дані при реєстрації нового користувача.
+     *
+     * @param login    логін
+     * @param password пароль
+     * @return список повідомлень про помилки (порожній, якщо валідація пройдена)
+     */
     public List<String> validateRegistration(String login, String password) {
         List<String> errors = new ArrayList<>();
 
@@ -45,6 +66,13 @@ public class ValidationService {
         return errors;
     }
 
+    /**
+     * Перевіряє дані під час входу користувача.
+     *
+     * @param login    логін
+     * @param password пароль
+     * @return список помилок (порожній — якщо авторизація пройдена)
+     */
     public List<String> validateLogin(String login, String password) {
         List<String> errors = new ArrayList<>();
 
@@ -58,9 +86,9 @@ public class ValidationService {
 
         if (!errors.isEmpty()) return errors;
 
-        // Перевірка на захардкодженого адміна
+        // Обробка захардкодженого адміна
         if (login.equals("admin") && password.equals("admin")) {
-            return errors; // все ок
+            return errors;
         }
 
         Optional<Users> userOpt = usersDao.findByUsername(login);

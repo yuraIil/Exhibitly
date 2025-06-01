@@ -8,8 +8,25 @@ import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 
+/**
+ * Сервіс для генерації Word-звіту з описами експонатів.
+ * <p>
+ * Звіт містить:
+ * <ul>
+ *     <li>Назву експоната</li>
+ *     <li>Опис</li>
+ *     <li>Категорію</li>
+ *     <li>Дату надходження</li>
+ * </ul>
+ * Дані отримуються з {@link ExhibitDao}.
+ */
 public class ReportWordService {
 
+    /**
+     * Генерує DOCX-файл з описами всіх експонатів.
+     *
+     * @return байтовий масив DOCX-файлу
+     */
     public byte[] generate() {
         try (XWPFDocument doc = new XWPFDocument(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             XWPFParagraph title = doc.createParagraph();

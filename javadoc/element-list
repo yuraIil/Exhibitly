@@ -1,7 +1,10 @@
 com.yuralil
+com.yuralil.application.components
 com.yuralil.application.form
 com.yuralil.application.windows
-com.yuralil.components
 com.yuralil.domain.dao
 com.yuralil.domain.entities
+com.yuralil.domain.enums
+com.yuralil.domain.security
+com.yuralil.domain.service
 com.yuralil.infrastructure.util

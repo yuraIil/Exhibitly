@@ -13,9 +13,21 @@ import javafx.stage.Stage;
 
 /**
  * Головний клас запуску JavaFX-застосунку Exhibitly.
+ * <p>
+ * Виконує:
+ * <ul>
+ *     <li>ініціалізацію бази даних та початкових даних</li>
+ *     <li>перевірку активної сесії користувача</li>
+ *     <li>перехід до головного меню або вступного вікна</li>
+ * </ul>
  */
 public class ExhibitlyMain extends Application {
 
+    /**
+     * Метод запуску JavaFX-застосунку.
+     *
+     * @param primaryStage основна сцена
+     */
     @Override
     public void start(Stage primaryStage) {
         AppInitializer.initAll();
@@ -27,14 +39,14 @@ public class ExhibitlyMain extends Application {
             UsersDao.getInstance().findByUsername(savedUsername).ifPresentOrElse(user -> {
                 System.out.println("✅ Found user from session: " + user.getUsername());
                 Session.setCurrentUser(user);
+
                 MainMenuWindow mainMenu = new MainMenuWindow();
                 mainMenu.setUserRole(user.getRole().toLowerCase());
-                mainMenu.show(primaryStage, false);
+
+                mainMenu.show(primaryStage, true); // показ з fullscreen
+
                 Platform.runLater(() -> primaryStage.setFullScreen(true));
 
-                // ✅ Встановлюємо fullscreen ПЕРЕД показом
-                primaryStage.setFullScreen(true);
-                mainMenu.show(primaryStage, true);
             }, () -> {
                 System.out.println("⚠️ User from session not found in DB. Clearing session.");
                 SessionStorage.clear();
@@ -45,6 +57,11 @@ public class ExhibitlyMain extends Application {
         }
     }
 
+    /**
+     * Точка входу до застосунку Exhibitly.
+     *
+     * @param args аргументи командного рядка
+     */
     public static void main(String[] args) {
         launch(args);
     }

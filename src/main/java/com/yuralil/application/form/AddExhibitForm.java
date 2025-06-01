@@ -27,6 +27,12 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.sql.Connection;
 
+/**
+ * Форма для додавання нового експоната до бази даних.
+ * <p>
+ * Підтримує введення назви, опису, дати, категорії, вибір фото,
+ * створення мультимедіа і збереження експоната до БД.
+ */
 public class AddExhibitForm extends VBox {
 
     private final TextField nameField = new TextField();
@@ -37,6 +43,13 @@ public class AddExhibitForm extends VBox {
     private final ImageView previewImage = new ImageView();
     private File selectedPhotoFile;
 
+    /**
+     * Конструктор форми додавання експоната.
+     *
+     * @param ownerStage головне вікно, яке викликає форму
+     * @param dialog     вікно діалогу
+     * @param listView   список, що оновлюється після додавання експоната
+     */
     public AddExhibitForm(Stage ownerStage, Stage dialog, ExhibitListView listView) {
         setSpacing(10);
         setPadding(new Insets(20));
@@ -172,6 +185,12 @@ public class AddExhibitForm extends VBox {
         );
     }
 
+    /**
+     * Відображає діалог із формою додавання експоната, з центруванням і анімацією появи.
+     *
+     * @param parentStage головне вікно
+     * @param listView    список, який потрібно оновити після додавання
+     */
     public static void showForm(Stage parentStage, ExhibitListView listView) {
         Stage dialog = new Stage();
         dialog.initOwner(parentStage);

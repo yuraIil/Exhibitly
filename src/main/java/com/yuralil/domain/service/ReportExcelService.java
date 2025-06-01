@@ -7,8 +7,24 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.io.ByteArrayOutputStream;
 import java.util.Map;
 
+/**
+ * Сервіс для генерації Excel-звіту зі статистикою по категоріях експонатів.
+ * <p>
+ * Створює файл .xlsx з двома стовпцями:
+ * <ul>
+ *     <li>Категорія</li>
+ *     <li>Кількість експонатів</li>
+ * </ul>
+ * <p>
+ * Дані отримуються з {@link ExhibitDao#countByCategory()}.
+ */
 public class ReportExcelService {
 
+    /**
+     * Генерує Excel-звіт і повертає його вміст у вигляді байтового масиву.
+     *
+     * @return масив байтів .xlsx-файлу
+     */
     public byte[] generate() {
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Sheet sheet = workbook.createSheet("Статистика по категоріях");

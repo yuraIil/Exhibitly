@@ -19,15 +19,31 @@ import javafx.util.Duration;
 import java.io.File;
 import java.nio.file.Path;
 
+/**
+ * Діалогове вікно для відображення детальної інформації про експонат.
+ * <p>
+ * Включає:
+ * <ul>
+ *     <li>Зображення експоната</li>
+ *     <li>Назву, категорію, дату надходження, опис</li>
+ *     <li>Анімацію з масштабуванням при відкритті</li>
+ *     <li>Кнопку закриття</li>
+ * </ul>
+ */
 public class ExhibitDetailsDialog {
 
+    /**
+     * Відображає модальне вікно з детальною інформацією про експонат.
+     *
+     * @param exhibit     експонат, який буде показано
+     * @param parentStage головне вікно, від якого залежить діалог
+     */
     public static void show(Exhibit exhibit, Stage parentStage) {
         Stage dialog = new Stage();
         dialog.initOwner(parentStage);
         dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.initStyle(StageStyle.TRANSPARENT);
 
-        // Close button
         Button closeButton = new Button("✖");
         closeButton.setStyle("""
             -fx-background-color: transparent;
@@ -40,7 +56,6 @@ public class ExhibitDetailsDialog {
         closeBar.setAlignment(Pos.TOP_RIGHT);
         closeBar.setPadding(new Insets(5, 5, 0, 0));
 
-        // Image
         ImageView imageView = new ImageView();
         imageView.setFitWidth(200);
         imageView.setPreserveRatio(true);
@@ -53,7 +68,6 @@ public class ExhibitDetailsDialog {
             }
         }
 
-        // Details
         Label name = new Label(exhibit.getName());
         name.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
 
@@ -66,11 +80,9 @@ public class ExhibitDetailsDialog {
         details.setAlignment(Pos.TOP_LEFT);
         details.setPadding(new Insets(10));
 
-        // Content layout
         HBox contentBox = new HBox(20, imageView, details);
         contentBox.setPadding(new Insets(10));
 
-        // White container with border and shadow
         VBox container = new VBox(10, closeBar, contentBox);
         container.setStyle("""
             -fx-background-color: white;

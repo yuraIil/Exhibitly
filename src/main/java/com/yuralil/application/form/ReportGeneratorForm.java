@@ -20,12 +20,25 @@ import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Форма JavaFX для генерації та перегляду звітів у системі.
+ * <p>
+ * Підтримує:
+ * <ul>
+ *     <li>Вибір типу звіту (DOCX/Excel)</li>
+ *     <li>Генерацію та збереження звіту в базу</li>
+ *     <li>Вивід історії звітів з можливістю завантаження</li>
+ * </ul>
+ */
 public class ReportGeneratorForm extends VBox {
 
     private final ComboBox<ReportType> reportTypeComboBox;
     private final Label statusLabel;
     private final VBox reportList;
 
+    /**
+     * Конструктор ініціалізує форму генерації звітів.
+     */
     public ReportGeneratorForm() {
         setSpacing(30);
         setPadding(new Insets(30));
@@ -58,6 +71,10 @@ public class ReportGeneratorForm extends VBox {
         loadReportHistory();
     }
 
+    /**
+     * Генерує звіт відповідного типу та зберігає його в базу.
+     * Використовує відповідний сервіс залежно від {@link ReportType}.
+     */
     private void generateReport() {
         ReportType selectedType = reportTypeComboBox.getValue();
         if (selectedType == null) {
@@ -92,6 +109,10 @@ public class ReportGeneratorForm extends VBox {
         }
     }
 
+    /**
+     * Завантажує список усіх звітів із бази даних та відображає їх.
+     * Кожен звіт можна завантажити через кнопку "⬇ Завантажити".
+     */
     private void loadReportHistory() {
         reportList.getChildren().clear();
 

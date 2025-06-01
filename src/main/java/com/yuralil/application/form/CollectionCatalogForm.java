@@ -21,6 +21,18 @@ import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * JavaFX-компонент, що відображає каталог експонатів із можливістю фільтрації
+ * за категорією та пошуку за назвою.
+ * <p>
+ * Реалізує:
+ * <ul>
+ *     <li>Завантаження експонатів з бази даних</li>
+ *     <li>Відображення у вигляді карток</li>
+ *     <li>Фільтрацію за категорією</li>
+ *     <li>Пошук за назвою</li>
+ * </ul>
+ */
 public class CollectionCatalogForm extends VBox {
 
     private final TilePane tilePane;
@@ -29,6 +41,9 @@ public class CollectionCatalogForm extends VBox {
     private final List<Exhibit> allExhibits = new ArrayList<>();
     private Connection conn;
 
+    /**
+     * Конструктор створює інтерфейс з полями пошуку, фільтрації та сіткою експонатів.
+     */
     public CollectionCatalogForm() {
         setSpacing(16);
         setPadding(new Insets(20));
@@ -70,6 +85,9 @@ public class CollectionCatalogForm extends VBox {
         loadExhibitsFromDb();
     }
 
+    /**
+     * Завантажує експонати та категорії з бази даних, ініціалізує фільтр і відображає картки.
+     */
     private void loadExhibitsFromDb() {
         allExhibits.clear();
         categoryFilter.getItems().clear();
@@ -98,6 +116,9 @@ public class CollectionCatalogForm extends VBox {
         }
     }
 
+    /**
+     * Оновлює сітку експонатів відповідно до введеного пошуку та вибраної категорії.
+     */
     private void updateFilter() {
         if (conn == null) return;
 

@@ -7,7 +7,6 @@ import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import com.yuralil.application.form.ReportGeneratorForm;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.effect.BoxBlur;
@@ -19,6 +18,13 @@ import javafx.stage.Stage;
 
 import java.util.*;
 
+/**
+ * Головне меню застосунку Exhibitly.
+ * <p>
+ * Відображає доступні вкладки в залежності від ролі користувача (ADMIN, USER, VISITOR).
+ * Має навігацію між формами (ExhibitManager, Catalog, Favorites, Reports, Settings),
+ * кнопку виходу, адаптивний фон і підтримку повноекранного режиму.
+ */
 public class MainMenuWindow {
 
     private final String baseStyle = "-fx-font-size: 14px; -fx-text-fill: #1a3e2b;";
@@ -27,10 +33,21 @@ public class MainMenuWindow {
     private VBox rightPanel;
     private String userRole = "user";
 
+    /**
+     * Встановлює роль користувача (admin/user/visitor) для визначення доступу до вкладок.
+     *
+     * @param role роль користувача
+     */
     public void setUserRole(String role) {
         this.userRole = role;
     }
 
+    /**
+     * Відображає головне меню на переданому вікні.
+     *
+     * @param stage       цільове вікно
+     * @param fullScreen  чи слід відразу перейти в повноекранний режим
+     */
     public void show(Stage stage, boolean fullScreen) {
         stage.setFullScreen(fullScreen);
         double width = stage.getWidth() > 0 ? stage.getWidth() : 1280;
@@ -136,6 +153,11 @@ public class MainMenuWindow {
         stage.show();
     }
 
+    /**
+     * Змінює активну вкладку та виводить відповідну форму у правій панелі.
+     *
+     * @param selected обрана вкладка меню
+     */
     private void setActiveItem(Label selected) {
         if (activeItem != null) activeItem.setStyle(baseStyle);
         activeItem = selected;
@@ -158,12 +180,24 @@ public class MainMenuWindow {
         rightPanel = newContent;
     }
 
+    /**
+     * Стилізує праву панель під відображення контенту.
+     *
+     * @param panel VBox, в який виводиться контент
+     */
     private void styleRightPanel(VBox panel) {
         panel.setStyle("-fx-background-color: transparent;");
         panel.setPadding(new Insets(0));
         VBox.setVgrow(panel, Priority.ALWAYS);
     }
 
+    /**
+     * Створює задній фон з набору кольорових кругів.
+     *
+     * @param width  ширина екрану
+     * @param height висота екрану
+     * @return панель із фоном
+     */
     private Pane createBackgroundCircles(double width, double height) {
         Pane pane = new Pane();
         pane.setPrefSize(width, height);
@@ -180,6 +214,16 @@ public class MainMenuWindow {
         return pane;
     }
 
+    /**
+     * Створює одне кольорове розмите коло.
+     *
+     * @param radius  радіус
+     * @param color   колір
+     * @param x       позиція по X
+     * @param y       позиція по Y
+     * @param opacity прозорість
+     * @return обʼєкт кола
+     */
     private Circle createBlurredCircle(double radius, Color color, double x, double y, double opacity) {
         Circle circle = new Circle(radius, color);
         circle.setOpacity(opacity);

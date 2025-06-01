@@ -18,10 +18,20 @@ import javafx.scene.text.Text;
 import java.sql.Connection;
 import java.util.List;
 
+/**
+ * Форма JavaFX для відображення улюблених експонатів поточного користувача.
+ * <p>
+ * Якщо користувач не авторизований — виводиться повідомлення про необхідність входу.
+ * <p>
+ * Після входу відображаються картки {@link ExhibitCard} для кожного експоната з бази.
+ */
 public class FavoriteForm extends VBox {
 
     private final TilePane tilePane;
 
+    /**
+     * Конструктор створює інтерфейс списку улюблених експонатів.
+     */
     public FavoriteForm() {
         setSpacing(16);
         setPadding(new Insets(20));
@@ -51,6 +61,12 @@ public class FavoriteForm extends VBox {
         loadFavorites();
     }
 
+    /**
+     * Завантажує улюблені експонати поточного користувача з бази даних
+     * та відображає їх у вигляді карток.
+     * <p>
+     * Якщо користувач не авторизований — виводиться повідомлення про вхід.
+     */
     private void loadFavorites() {
         tilePane.getChildren().clear();
 

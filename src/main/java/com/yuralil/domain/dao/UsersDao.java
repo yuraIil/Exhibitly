@@ -7,6 +7,12 @@ import com.yuralil.infrastructure.util.ConnectionHolder;
 import java.sql.*;
 import java.util.Optional;
 
+/**
+ * DAO для роботи з користувачами.
+ * <p>
+ * Підтримує операції додавання, оновлення, видалення, пошуку за ID або username,
+ * а також ініціалізацію адміністратора та зміну пароля.
+ */
 public class UsersDao {
 
     private static final UsersDao INSTANCE = new UsersDao();
@@ -41,10 +47,21 @@ public class UsersDao {
 
     private UsersDao() {}
 
+    /**
+     * Повертає єдиний інстанс {@link UsersDao}.
+     *
+     * @return інстанс DAO
+     */
     public static UsersDao getInstance() {
         return INSTANCE;
     }
 
+    /**
+     * Додає нового користувача до бази.
+     *
+     * @param user користувач
+     * @return користувач із згенерованим ID
+     */
     public Users insert(Users user) {
         try (Connection connection = ConnectionHolder.get();
              PreparedStatement ps = connection.prepareStatement(INSERT_SQL, Statement.RETURN_GENERATED_KEYS)) {
@@ -66,6 +83,12 @@ public class UsersDao {
         }
     }
 
+    /**
+     * Оновлює дані користувача.
+     *
+     * @param user об'єкт {@link Users}
+     * @return {@code true}, якщо оновлення успішне
+     */
     public boolean update(Users user) {
         try (Connection connection = ConnectionHolder.get();
              PreparedStatement ps = connection.prepareStatement(UPDATE_SQL)) {
@@ -81,6 +104,12 @@ public class UsersDao {
         }
     }
 
+    /**
+     * Видаляє користувача за ID.
+     *
+     * @param id ідентифікатор користувача
+     * @return {@code true}, якщо видалення успішне
+     */
     public boolean delete(int id) {
         try (Connection connection = ConnectionHolder.get();
              PreparedStatement ps = connection.prepareStatement(DELETE_SQL)) {
@@ -92,6 +121,12 @@ public class UsersDao {
         }
     }
 
+    /**
+     * Пошук користувача за ID.
+     *
+     * @param id ідентифікатор
+     * @return обгорнутий користувач або {@code Optional.empty()}
+     */
     public Optional<Users> findById(int id) {
         try (Connection connection = ConnectionHolder.get();
              PreparedStatement ps = connection.prepareStatement(SELECT_BY_ID_SQL)) {
@@ -109,6 +144,12 @@ public class UsersDao {
         }
     }
 
+    /**
+     * Пошук користувача за іменем користувача.
+     *
+     * @param username логін
+     * @return обгорнутий користувач або {@code Optional.empty()}
+     */
     public Optional<Users> findByUsername(String username) {
         try (Connection connection = ConnectionHolder.get();
              PreparedStatement ps = connection.prepareStatement(SELECT_BY_USERNAME_SQL)) {
@@ -126,12 +167,16 @@ public class UsersDao {
         }
     }
 
+    /**
+     * Ініціалізує адміністратора, якщо він ще не існує.
+     * Логін: {@code administrator}, пароль: {@code admin12345}.
+     */
     public void initAdmin() {
         Optional<Users> adminOpt = findByUsername("administrator");
         if (adminOpt.isEmpty()) {
             Users admin = new Users();
             admin.setUsername("administrator");
-            admin.setPassword(HashUtil.hash("admin12345")); // пароль у хеші
+            admin.setPassword(HashUtil.hash("admin12345"));
             admin.setRole("ADMIN");
 
             insert(admin);
@@ -139,14 +184,12 @@ public class UsersDao {
         }
     }
 
-    private Users buildUser(ResultSet rs) throws SQLException {
-        return new Users(
-                rs.getInt("id"),
-                rs.getString("username"),
-                rs.getString("password"),
-                rs.getString("role")
-        );
-    }
+    /**
+     * Оновлює лише пароль користувача.
+     *
+     * @param userId      ідентифікатор користувача
+     * @param newPassword новий хешований пароль
+     */
     public void updatePassword(int userId, String newPassword) {
         String sql = "UPDATE users SET password = ? WHERE id = ?";
         try (Connection conn = ConnectionHolder.get();
@@ -159,4 +202,19 @@ public class UsersDao {
         }
     }
 
+    /**
+     * Побудова об'єкта {@link Users} з {@link ResultSet}.
+     *
+     * @param rs результат запиту
+     * @return об'єкт {@link Users}
+     * @throws SQLException у випадку помилки
+     */
+    private Users buildUser(ResultSet rs) throws SQLException {
+        return new Users(
+                rs.getInt("id"),
+                rs.getString("username"),
+                rs.getString("password"),
+                rs.getString("role")
+        );
+    }
 }

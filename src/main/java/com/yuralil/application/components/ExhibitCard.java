@@ -19,16 +19,32 @@ import java.io.File;
 import java.sql.Connection;
 
 /**
- * Картка для відображення експоната з підтримкою додавання в обране.
+ * Компонент JavaFX, який відображає картку експоната з його назвою,
+ * категорією, датою надходження та кнопкою додавання в обране.
+ * <p>
+ * Доступні функції:
+ * <ul>
+ *     <li>Відображення фото, назви, категорії та дати надходження експоната</li>
+ *     <li>Анімація масштабування при наведенні</li>
+ *     <li>Клік для відкриття діалогу з деталями експоната</li>
+ *     <li>Кнопка "Додати в обране" (тільки для авторизованих користувачів)</li>
+ * </ul>
  */
 public class ExhibitCard extends StackPane {
 
     private final FavoriteDao favoriteDao = new FavoriteDao();
 
+    /**
+     * Конструктор, який створює картку експоната.
+     *
+     * @param exhibit Експонат, що буде відображено
+     * @param conn    З'єднання з базою даних для перевірки обраного
+     */
     public ExhibitCard(Exhibit exhibit, Connection conn) {
         setPrefWidth(220);
         setMaxWidth(220);
 
+        // Завантаження зображення експоната
         ImageView imageView = new ImageView();
         String imgPath = "storage/images/" + exhibit.getMultimedia().getFilePath();
         File file = new File(imgPath);
@@ -38,6 +54,7 @@ public class ExhibitCard extends StackPane {
         imageView.setFitWidth(220);
         imageView.setFitHeight(130);
 
+        // Текстові поля: назва, категорія, дата
         Label title = new Label(exhibit.getName());
         title.setStyle("-fx-font-weight: bold; -fx-font-size: 13px;");
 
@@ -51,7 +68,7 @@ public class ExhibitCard extends StackPane {
         info.setPadding(new Insets(5));
         info.setAlignment(Pos.TOP_LEFT);
 
-        // Кнопка "в обране" — лише для авторизованих користувачів
+        // Додавання кнопки "в обране" (лише для авторизованих)
         if (Session.getCurrentUser() != null) {
             Button favButton = new Button();
             favButton.setStyle("-fx-background-color: transparent; -fx-font-size: 12px; -fx-cursor: hand;");
@@ -82,7 +99,7 @@ public class ExhibitCard extends StackPane {
         """);
         content.setEffect(new javafx.scene.effect.DropShadow(4, Color.rgb(0, 0, 0, 0.05)));
 
-        // Анімація при наведенні
+        // Анімація при наведенні мишки
         ScaleTransition st = new ScaleTransition(Duration.millis(150), content);
         this.setOnMouseEntered(e -> {
             st.setToX(1.03);
@@ -95,7 +112,7 @@ public class ExhibitCard extends StackPane {
             st.playFromStart();
         });
 
-        // Клік — показати діалог
+        // Відкриття діалогу з деталями при натисканні
         this.setOnMouseClicked(e -> {
             Window window = getScene() != null ? getScene().getWindow() : null;
             if (window instanceof javafx.stage.Stage stage) {
@@ -107,6 +124,12 @@ public class ExhibitCard extends StackPane {
         setPadding(new Insets(5));
     }
 
+    /**
+     * Оновлює текст кнопки обраного відповідно до стану.
+     *
+     * @param button      Кнопка, яка змінює свій текст
+     * @param isFavorite  Чи додано експонат до обраного
+     */
     private void updateFavButton(Button button, boolean isFavorite) {
         button.setText(isFavorite ? "✅ У вибраному" : "❤ Додати в обране");
     }

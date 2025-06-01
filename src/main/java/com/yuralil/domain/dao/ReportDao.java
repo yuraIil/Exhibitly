@@ -9,6 +9,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * DAO-клас для доступу до таблиці {@code report}.
+ * <p>
+ * Забезпечує CRUD-операції для збереження, пошуку, видалення звітів,
+ * з підтримкою вибірки останнього звіту по типу.
+ */
 public class ReportDao {
 
     private static final ReportDao INSTANCE = new ReportDao();
@@ -45,10 +51,21 @@ public class ReportDao {
 
     private ReportDao() {}
 
+    /**
+     * Повертає єдиний інстанс DAO.
+     *
+     * @return ReportDao
+     */
     public static ReportDao getInstance() {
         return INSTANCE;
     }
 
+    /**
+     * Вставляє новий звіт у базу даних.
+     *
+     * @param report звіт для збереження
+     * @return збережений звіт із заповненим id
+     */
     public Report insert(Report report) {
         try (Connection conn = ConnectionHolder.get();
              PreparedStatement ps = conn.prepareStatement(INSERT_SQL, Statement.RETURN_GENERATED_KEYS)) {
@@ -69,6 +86,12 @@ public class ReportDao {
         }
     }
 
+    /**
+     * Повертає звіт за його ID.
+     *
+     * @param id ідентифікатор звіту
+     * @return обгорнутий звіт або {@code Optional.empty()}
+     */
     public Optional<Report> findById(int id) {
         try (Connection conn = ConnectionHolder.get();
              PreparedStatement ps = conn.prepareStatement(SELECT_BY_ID_SQL)) {
@@ -86,6 +109,12 @@ public class ReportDao {
         }
     }
 
+    /**
+     * Повертає останній згенерований звіт заданого типу.
+     *
+     * @param type тип звіту
+     * @return обгорнутий останній звіт або {@code Optional.empty()}
+     */
     public Optional<Report> findLatestByType(ReportType type) {
         try (Connection conn = ConnectionHolder.get();
              PreparedStatement ps = conn.prepareStatement(SELECT_LATEST_BY_TYPE_SQL)) {
@@ -103,6 +132,11 @@ public class ReportDao {
         }
     }
 
+    /**
+     * Повертає всі звіти, відсортовані за датою (спадання).
+     *
+     * @return список звітів
+     */
     public List<Report> findAll() {
         List<Report> reports = new ArrayList<>();
 
@@ -121,6 +155,12 @@ public class ReportDao {
         return reports;
     }
 
+    /**
+     * Видаляє звіт за його ID.
+     *
+     * @param id ідентифікатор звіту
+     * @return {@code true}, якщо звіт було видалено
+     */
     public boolean delete(int id) {
         try (Connection conn = ConnectionHolder.get();
              PreparedStatement ps = conn.prepareStatement(DELETE_SQL)) {
@@ -132,6 +172,13 @@ public class ReportDao {
         }
     }
 
+    /**
+     * Побудова об'єкта Report із {@link ResultSet}.
+     *
+     * @param rs джерело з даними
+     * @return об'єкт Report
+     * @throws SQLException якщо не вдається прочитати дані
+     */
     private Report buildReport(ResultSet rs) throws SQLException {
         return new Report(
                 rs.getInt("id"),

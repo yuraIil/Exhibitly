@@ -23,8 +23,25 @@ import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Вікно авторизації та реєстрації користувача.
+ * <p>
+ * Містить форму {@link AuthForm} з обробкою:
+ * <ul>
+ *     <li>входу (логін)</li>
+ *     <li>реєстрації</li>
+ *     <li>гостьового режиму</li>
+ * </ul>
+ * <p>
+ * Декоративний фон побудовано з розмитих кольорових кіл.
+ */
 public class AuthWindow {
 
+    /**
+     * Створює кореневий елемент інтерфейсу для вікна авторизації.
+     *
+     * @return StackPane із вмістом форми
+     */
     public StackPane getRoot() {
         Label title = new Label("Exhibitly");
         title.setStyle("""
@@ -173,12 +190,24 @@ public class AuthWindow {
         return root;
     }
 
+    /**
+     * Відображає вікно авторизації на сцені.
+     *
+     * @param stage цільове вікно
+     */
     public void show(Stage stage) {
         Scene scene = new Scene(getRoot(), stage.getWidth(), stage.getHeight());
         stage.setScene(scene);
-        stage.setFullScreen(true); // ✅ повноекранний режим при відкритті
+        stage.setFullScreen(true);
     }
 
+    /**
+     * Створює задній фон з кольорових кругів.
+     *
+     * @param width  ширина екрану
+     * @param height висота екрану
+     * @return Pane з колами
+     */
     private Pane createBackgroundCircles(double width, double height) {
         Pane pane = new Pane();
         pane.setPrefSize(width, height);
@@ -199,6 +228,16 @@ public class AuthWindow {
         return pane;
     }
 
+    /**
+     * Створює розмите коло для заднього фону.
+     *
+     * @param radius   радіус кола
+     * @param color    колір
+     * @param layoutX  позиція X
+     * @param layoutY  позиція Y
+     * @param opacity  прозорість
+     * @return обʼєкт кола
+     */
     private Circle createBlurredCircle(double radius, Color color, double layoutX, double layoutY, double opacity) {
         Circle circle = new Circle(radius, color);
         circle.setOpacity(opacity);
@@ -208,6 +247,12 @@ public class AuthWindow {
         return circle;
     }
 
+    /**
+     * Стилізує вкладку логіну/реєстрації як активну або неактивну.
+     *
+     * @param button кнопка вкладки
+     * @param active чи активна
+     */
     private void styleTabButton(Button button, boolean active) {
         button.setStyle(
                 active
